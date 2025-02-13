@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helpdesk Personnel Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <div class="navbar">
+        <div class="navbar-left">
+            <a href="#">Mailbox</a>
+            <a href="#">Reports</a>
+        </div>
+        <div class="navbar-right">
+            <input type="text" class="search-bar" placeholder="Search...">
+            <span class="alert-icon">🔔</span>
+            <span class="profile-icon">📜</span>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div style="display: flex; flex: 1;">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>Dashboard</h2>
+            <ul>
+                <li><a href="#">Live Chat</a></li>
+                <li class="dropdown">
+                    <a href="#">Tickets</a>
+                    <ul class="dropdown-content">
+                        <li><a href="#">Open</a></li>
+                        <li><a href="#">Closed</a></li>
+                    </ul>
+                </li>
+                <li><a href="#">Analytics</a></li>
+                <li><a href="#">Settings</a></li>
+                <li><a href="#">Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h1>Open Tickets</h1>
+
+            <!-- Ticket List [EXAMPLES ONLY] -->
+            <div class="ticket-list">
+                <div class="ticket" onclick="showTicketDetails(1)">
+                    <h3>Ticket #001</h3>
+                    <p>Subject: Login Issues</p>
+                    <p>Status: Open</p>
+                </div>
+                <div class="ticket" onclick="showTicketDetails(2)">
+                    <h3>Ticket #002</h3>
+                    <p>Subject: Email Not Working</p>
+                    <p>Status: In Progress</p>
+                </div>
+                <div class="ticket" onclick="showTicketDetails(3)">
+                    <h3>Ticket #003</h3>
+                    <p>Subject: Printer Not Responding</p>
+                    <p>Status: Closed</p>
+                </div>
+            </div>
+
+            <!-- Ticket Details -->
+            <div class="ticket-details" id="ticketDetails">
+                <h2>Ticket Details</h2>
+                <p><strong>Ticket ID:</strong> <span id="ticketId">001</span></p>
+                <p><strong>Subject:</strong> <span id="ticketSubject">Login Issues</span></p>
+                <p><strong>Status:</strong> <span id="ticketStatus">Open</span></p>
+                <p><strong>Description:</strong> <span id="ticketDescription">User cannot log in to the system.</span></p>
+                <textarea placeholder="Add a response..."></textarea>
+                <button>Submit Response</button>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+</html>
