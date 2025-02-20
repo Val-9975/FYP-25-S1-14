@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SecurePay - Contact Support</title>
+    <!-- Preconnect & Font -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Work+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+      body {
+        font-family: "Work Sans", "Noto Sans", sans-serif;
+      }
+      /* Example placeholder avatar */
+      .avatar {
+        background: url('https://via.placeholder.com/40/aaa/fff?text=👤') no-repeat center/cover;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-[#0e141b] flex flex-col">
+    <!-- Header -->
+    <header
+      class="w-full flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white"
+    >
+      <!-- Logo + Title -->
+      <div class="flex items-center gap-2">
+        <!-- Simple Logo Icon -->
+        <svg
+          class="w-6 h-6"
+          viewBox="0 0 48 48"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g clip-path="url(#clip0)">
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
+              fill="currentColor"
+            />
+          </g>
+          <defs>
+            <clipPath id="clip0">
+              <rect width="48" height="48" fill="white" />
+            </clipPath>
+          </defs>
+        </svg>
+        <span class="text-lg font-bold">SecurePay</span>
+      </div>
+      <!-- Avatar -->
+      <div
+        class="avatar w-10 h-10 rounded-full bg-slate-300 overflow-hidden"
+        aria-label="User Avatar"
+      ></div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col items-center justify-center p-6">
+      <!-- Container -->
+      <div class="w-full max-w-3xl bg-white rounded-md shadow-md p-6">
+        <!-- Title -->
+        <h1 class="text-2xl font-bold mb-4">Contact Support</h1>
+
+        <!-- Subtitle -->
+        <h2 class="text-lg font-semibold mb-6">
+          How can we help you today?
+        </h2>
+
+        <!-- Contact Options -->
+        <div class="flex flex-col gap-4">
+          <!-- Start a Live Chat -->
+          <a
+            href="#"
+            class="flex items-center justify-between p-4 border border-slate-200 rounded-md hover:bg-slate-50 transition"
+          >
+            <div>
+              <p class="font-medium">Start a live chat</p>
+              <p class="text-sm text-slate-600">Typically replies in a few minutes</p>
+            </div>
+            <!-- Arrow icon -->
+            <svg
+              class="w-5 h-5 text-slate-400"
+              fill="currentColor"
+              viewBox="0 0 256 256"
+            >
+              <path
+                d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"
+              ></path>
+            </svg>
+          </a>
+
+          <!-- Email -->
+          <a
+            href="mailto:support@securepay.com"
+            class="flex items-center justify-between p-4 border border-slate-200 rounded-md hover:bg-slate-50 transition"
+          >
+            <div>
+              <p class="font-medium">Email</p>
+              <p class="text-sm text-slate-600">support@securepay.com</p>
+            </div>
+            <!-- Arrow icon -->
+            <svg
+              class="w-5 h-5 text-slate-400"
+              fill="currentColor"
+              viewBox="0 0 256 256"
+            >
+              <path
+                d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"
+              ></path>
+            </svg>
+          </a>
+
+          <!-- Phone -->
+          <div
+            class="flex items-center justify-between p-4 border border-slate-200 rounded-md"
+          >
+            <div>
+              <p class="font-medium">Call</p>
+              <p class="text-sm text-slate-600">(415) 555-1234</p>
+              <p class="text-sm text-slate-600">Mon-Fri 7am-6pm PT</p>
+            </div>
+            <!-- Arrow icon -->
+            <svg
+              class="w-5 h-5 text-slate-400"
+              fill="currentColor"
+              viewBox="0 0 256 256"
+            >
+              <path
+                d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"
+              ></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Back to Dashboard Button -->
+        <div class="mt-6 flex justify-center">
+          <a
+            href="customerUI.html"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+          >
+            Back to Dashboard
+          </a>
+        </div>
+
+        <!-- FAQs -->
+        <div class="mt-8">
+          <h3 class="text-lg font-semibold mb-4">FAQs</h3>
+          <div class="flex flex-col gap-4">
+            <a
+              href="#"
+              class="flex items-center justify-between p-4 border border-slate-200 rounded-md hover:bg-slate-50 transition"
+            >
+              <p class="font-medium">How do I add a payment method?</p>
+              <svg
+                class="w-5 h-5 text-slate-400"
+                fill="currentColor"
+                viewBox="0 0 256 256"
+              >
+                <path
+                  d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"
+                ></path>
+              </svg>
+            </a>
+            <a
+              href="#"
+              class="flex items-center justify-between p-4 border border-slate-200 rounded-md hover:bg-slate-50 transition"
+            >
+              <p class="font-medium">How do I add a card in the app?</p>
+              <svg
+                class="w-5 h-5 text-slate-400"
+                fill="currentColor"
+                viewBox="0 0 256 256"
+              >
+                <path
+                  d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"
+                ></path>
+              </svg>
+            </a>
+            <a
+              href="#"
+              class="flex items-center justify-between p-4 border border-slate-200 rounded-md hover:bg-slate-50 transition"
+            >
+              <p class="font-medium">How do I add a payment method?</p>
+              <svg
+                class="w-5 h-5 text-slate-400"
+                fill="currentColor"
+                viewBox="0 0 256 256"
+              >
+                <path
+                  d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"
+                ></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer / Privacy Policy -->
+        <div class="mt-8 pt-4 border-t border-slate-200 text-center">
+          <a
+            href="#"
+            class="text-sm text-blue-600 hover:underline font-medium"
+          >
+            Gateway Privacy Policy
+          </a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
