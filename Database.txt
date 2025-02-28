@@ -1,0 +1,105 @@
+-- 1) Create a table for roles
+CREATE TABLE roles (
+    role_id INT AUTO_INCREMENT PRIMARY KEY,
+    role_name VARCHAR(50) NOT NULL
+);
+
+-- 2) Insert the roles: customer, merchant, system_admin, helpdesk_personnel
+INSERT INTO roles (role_name)
+VALUES ('customer'), ('merchant'), ('system_admin'), ('helpdesk_personnel');
+
+-- 3) Create a users table with relevant fields
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,   -- In production, store a hashed password
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(20),
+    address VARCHAR(255),
+    city VARCHAR(50),
+    state VARCHAR(50),
+    country VARCHAR(50),
+    zip_code VARCHAR(20),
+    role_id INT NOT NULL,
+    status VARCHAR(20) DEFAULT 'active',   -- e.g. active/inactive/banned
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES roles(role_id)
+);
+
+-- Customers (role_id = 1)
+INSERT INTO users (
+    email, 
+    password, 
+    first_name, 
+    last_name, 
+    phone_number, 
+    address, 
+    city, 
+    state, 
+    country, 
+    zip_code, 
+    role_id
+)
+VALUES
+('john.smith@example.com',   'password123', 'John',  'Smith',   '123-456-7890', '123 Maple St',   'Seattle',  'WA', 'USA', '98101', 1),
+('mary.johnson@example.com', 'myPass@456',  'Mary',  'Johnson', '234-567-8901', '456 Oak Avenue', 'Boston',   'MA', 'USA', '02108', 1),
+('david.brown@example.com',  'davidPass!',  'David', 'Brown',   '345-678-9012', '789 Pine Rd',    'Denver',   'CO', 'USA', '80203', 1);
+
+-- Merchants (role_id = 2)
+INSERT INTO users (
+    email, 
+    password, 
+    first_name, 
+    last_name, 
+    phone_number, 
+    address, 
+    city, 
+    state, 
+    country, 
+    zip_code, 
+    role_id
+)
+VALUES
+('merchant1@example.com', 'm3rch@nt1', 'Alice',  'Waters',   '111-222-3333', '10 Business Park', 'Los Angeles', 'CA', 'USA', '90001', 2),
+('merchant2@example.com', 'm3rch@nt2', 'Bob',    'Green',    '222-333-4444', '99 Commerce St',   'Houston',     'TX', 'USA', '77001', 2),
+('merchant3@example.com', 'm3rch@nt3', 'Cathy',  'Clark',    '333-444-5555', '88 Industrial Ln', 'Chicago',     'IL', 'USA', '60601', 2);
+
+-- System Admins (role_id = 3)
+INSERT INTO users (
+    email, 
+    password, 
+    first_name, 
+    last_name, 
+    phone_number, 
+    address, 
+    city, 
+    state, 
+    country, 
+    zip_code, 
+    role_id
+)
+VALUES
+('admin1@example.com', 'Adm!nPass1', 'Adam',   'Jones',  '444-555-6666', '123 Admin Rd',  'New York',  'NY', 'USA', '10001', 3),
+('admin2@example.com', 'Adm!nPass2', 'Sarah',  'Lee',    '555-666-7777', '456 Root Way',  'Miami',     'FL', 'USA', '33101', 3),
+('admin3@example.com', 'Adm!nPass3', 'Peter',  'Wong',   '666-777-8888', '789 Superuser', 'San Diego', 'CA', 'USA', '92101', 3);
+
+-- Helpdesk Personnel (role_id = 4)
+INSERT INTO users (
+    email, 
+    password, 
+    first_name, 
+    last_name, 
+    phone_number, 
+    address, 
+    city, 
+    state, 
+    country, 
+    zip_code, 
+    role_id
+)
+VALUES
+('helpdesk1@example.com', 'HelpD3sk1', 'Hannah', 'Bell',   '777-888-9999', 'Helpdesk HQ', 'Austin',   'TX', 'USA', '73301', 4),
+('helpdesk2@example.com', 'HelpD3sk2', 'Ivan',   'Nguyen', '888-999-0000', 'Desk St',     'Orlando',  'FL', 'USA', '32801', 4),
+('helpdesk3@example.com', 'HelpD3sk3', 'Olivia', 'Kim',    '999-000-1111', 'Support Ave', 'Portland', 'OR', 'USA', '97201', 4);

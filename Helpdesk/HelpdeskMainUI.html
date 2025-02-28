@@ -4,79 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Helpdesk Personnel Dashboard</title>
-    <link rel="stylesheet" href="styles.css" />
-    
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
-<body>
-    <!-- Top Navigation Bar -->
-    <div class="navbar">
-        <div class="navbar-left">
-            <a href="#">Mailbox</a>
-            <a href="#">Reports</a>
-        </div>
-        <div class="navbar-right">
-            <input type="text" class="search-bar" placeholder="Search...">
-            <span class="alert-icon">🔔</span>
-            <span class="profile-icon">📜</span>
+<body class="bg-slate-50 font-sans">
+    <div class="flex flex-col min-h-screen">
+        <!-- Top Navigation Bar -->
+        <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
+            <div class="flex items-center gap-4">
+                <h2 class="text-lg font-bold text-slate-900">Helpdesk Dashboard</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
+                <button class="p-2 text-slate-700 hover:text-slate-900">🔔</button>
+                <button class="p-2 text-slate-700 hover:text-slate-900">📜</button>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="flex flex-1">
+            <!-- Sidebar -->
+            <div class="w-64 bg-white border-r border-slate-200 p-4">
+                <h2 class="text-lg font-bold text-slate-900 mb-4">Dashboard</h2>
+                <ul class="space-y-2">
+                    <li><a href="#" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Live Chat</a></li>
+                    <li class="relative dropdown">
+                        <a href="#" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Tickets</a>
+                        <ul class="dropdown-content hidden absolute left-full top-0 bg-white shadow-lg rounded-xl p-2">
+                            <li><a href="#" class="p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Open</a></li>
+                            <li><a href="#" class="p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Closed</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Analytics</a></li>
+                    <li><a href="#" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Settings</a></li>
+                    <li><a href="#" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Logout</a></li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 p-6">
+                <h1 class="text-2xl font-bold text-slate-900 mb-6">Open Tickets</h1>
+                <div class="grid gap-4">
+                    <!-- Ticket List -->
+                    <div class="ticket bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <h3 class="text-lg font-semibold text-slate-900">Ticket #001</h3>
+                        <p class="text-slate-600">Subject: Login Issues</p>
+                        <p class="text-slate-600">Status: Open</p>
+                    </div>
+                    <div class="ticket bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <h3 class="text-lg font-semibold text-slate-900">Ticket #002</h3>
+                        <p class="text-slate-600">Subject: Email Not Working</p>
+                        <p class="text-slate-600">Status: In Progress</p>
+                    </div>
+                    <div class="ticket bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <h3 class="text-lg font-semibold text-slate-900">Ticket #003</h3>
+                        <p class="text-slate-600">Subject: Printer Not Responding</p>
+                        <p class="text-slate-600">Status: Closed</p>
+                    </div>
+                </div>
+
+                <!-- Ticket Details -->
+                <div class="mt-6 bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4">Ticket Details</h2>
+                    <p class="text-slate-700"><strong>Ticket ID:</strong> <span id="ticketId">001</span></p>
+                    <p class="text-slate-700"><strong>Subject:</strong> <span id="ticketSubject">Login Issues</span></p>
+                    <p class="text-slate-700"><strong>Status:</strong> <span id="ticketStatus">Open</span></p>
+                    <p class="text-slate-700"><strong>Description:</strong> <span id="ticketDescription">User cannot log in to the system.</span></p>
+                    <textarea class="w-full mt-4 p-3 border border-slate-200 rounded-xl" placeholder="Add a response..."></textarea>
+                    <button class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">Submit Response</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div style="display: flex; flex: 1;">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <h2>Dashboard</h2>
-            <ul>
-                <li><a href="#">Live Chat</a></li>
-                <li class="dropdown">
-                    <a href="#">Tickets</a>
-                    <ul class="dropdown-content">
-                        <li><a href="#">Open</a></li>
-                        <li><a href="#">Closed</a></li>
-                    </ul>
-                </li>
-                <li><a href="#">Analytics</a></li>
-                <li><a href="#">Settings</a></li>
-                <li><a href="#">Logout</a></li>
-            </ul>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <h1>Open Tickets</h1>
-
-            <!-- Ticket List [EXAMPLES ONLY] -->
-            <div class="ticket-list">
-                <div class="ticket" onclick="showTicketDetails(1)">
-                    <h3>Ticket #001</h3>
-                    <p>Subject: Login Issues</p>
-                    <p>Status: Open</p>
-                </div>
-                <div class="ticket" onclick="showTicketDetails(2)">
-                    <h3>Ticket #002</h3>
-                    <p>Subject: Email Not Working</p>
-                    <p>Status: In Progress</p>
-                </div>
-                <div class="ticket" onclick="showTicketDetails(3)">
-                    <h3>Ticket #003</h3>
-                    <p>Subject: Printer Not Responding</p>
-                    <p>Status: Closed</p>
-                </div>
-            </div>
-
-            <!-- Ticket Details -->
-            <div class="ticket-details" id="ticketDetails">
-                <h2>Ticket Details</h2>
-                <p><strong>Ticket ID:</strong> <span id="ticketId">001</span></p>
-                <p><strong>Subject:</strong> <span id="ticketSubject">Login Issues</span></p>
-                <p><strong>Status:</strong> <span id="ticketStatus">Open</span></p>
-                <p><strong>Description:</strong> <span id="ticketDescription">User cannot log in to the system.</span></p>
-                <textarea placeholder="Add a response..."></textarea>
-                <button>Submit Response</button>
-            </div>
-        </div>
-    </div>
-
-
+    <script>
+        document.querySelector('.dropdown').addEventListener('click', function() {
+            this.querySelector('.dropdown-content').classList.toggle('hidden');
+        });
+    </script>
 </body>
 </html>
