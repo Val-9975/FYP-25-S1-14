@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="bg-slate-50 font-sans">
+    <div class="flex flex-col min-h-screen">
+        <!-- Top Navigation Bar -->
+        <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
+            <div class="flex items-center gap-4">
+                <h2 class="text-lg font-bold text-slate-900">Monitor All Transactions Dashboard</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
+                <button class="p-2 text-slate-700 hover:text-slate-900">🔔</button>
+                <button class="p-2 text-slate-700 hover:text-slate-900">📜</button>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="flex flex-1">
+            <!-- Sidebar -->
+            <div class="w-64 bg-white border-r border-slate-200 p-4">
+                <h2 class="text-lg font-bold text-slate-900 mb-4">Dashboard</h2>
+                <ul class="space-y-2">
+                    <li><a href="SysAdminDetails.html" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">System Admin Details</a></li>
+                    <li><a href="SysAdminViewTransactions.html" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Monitor All Transactions</a></li>
+                    <li><a href="SysAdminViewUserLogs.html" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">View User Activity Logs</a></li>
+                    <li><a href="SysAdminSecuritySettings.html" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Security Settings</a></li>
+                    <li><a href="#" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Logout</a></li>
+                </ul>
+            </div>
+
+                <!-- Transaction Details -->
+                <div class="flex-1 bg-white p-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4">Transaction Details</h2>
+                    <p class="text-slate-700"><strong>Transaction ID:</strong> <span id="transactionId">123</span></p>
+                    <p class="text-slate-700"><strong>Customer Name:</strong> <span id="customerName">John Tan</span></p>
+                    <p class="text-slate-700"><strong>Merchant Name:</strong> <span id="merchantName">Bob Tan</span></p>
+                    <p class="text-slate-700"><strong>Transaction Status:</strong> <span id="transactionStatus">???</span></p>
+                </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.dropdown').addEventListener('click', function() {
+            this.querySelector('.dropdown-content').classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>
