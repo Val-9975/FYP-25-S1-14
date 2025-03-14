@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <title>Merchant Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        function toggleDropdown() {
+            document.getElementById("filterDropdown").classList.toggle("hidden");
+        }
+        function filterTransactions() {
+            const input = document.getElementById("filterInput").value.toUpperCase();
+            const tableRows = document.querySelectorAll("tbody tr");
+            tableRows.forEach(row => {
+                const status = row.children[3].textContent.toUpperCase();
+                row.style.display = status.includes(input) ? "" : "none";
+            });
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-[Work Sans,Noto Sans,sans-serif]">
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+        <header class="flex items-center justify-between border-b border-[#e7edf3] px-10 py-3">
+            <div class="flex items-center gap-4 text-[#0e141b]">
+                <div class="size-4">
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold">SafePay</h2>
+            </div>
+
+                                <!-- Logout Button -->
+                                <li class="list-none">
+                                    <form action="/logout/" method="POST">
+                                        {% csrf_token %}
+                                        <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
+                                            Logout
+                                        </button>
+                                    </form>
+                                 </li>
+
+        </header>
+        <main class="flex flex-1 flex-col items-center px-6 py-5">
+            <h2 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em]">All Transactions</h2>
+            <div class="relative mt-4">
+                <button onclick="toggleDropdown()" class="rounded-xl h-10 px-4 bg-[#1980e6] text-white text-sm font-bold">Filter</button>
+                <div id="filterDropdown" class="absolute bg-white shadow-md rounded-xl mt-2 p-4 hidden">
+                    <input id="filterInput" type="text" class="border p-3 rounded-md w-80" placeholder="Search by status..." onkeyup="filterTransactions()">
+                    <button onclick="filterTransactions()" class="mt-2 w-full bg-[#1980e6] text-white p-2 rounded-md">Apply</button>
+                </div>
+            </div>
+            <div class="w-full max-w-[960px] bg-white p-4 rounded-xl shadow-md mt-6">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-[#e7edf3]">
+                        <tr>
+                            <th class="p-3">Transaction ID</th>
+                            <th class="p-3">Customer</th>
+                            <th class="p-3">Amount</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="hover:bg-[#f1f5f9]">
+                            <td class="p-3">TXN12345</td>
+                            <td class="p-3">John Doe</td>
+                            <td class="p-3">$120.50</td>
+                            <td class="p-3 text-green-600">Completed</td>
+                            <td class="p-3">2025-02-14</td>
+                        </tr>
+                        <tr class="hover:bg-[#f1f5f9]">
+                            <td class="p-3">TXN12346</td>
+                            <td class="p-3">Alice Smith</td>
+                            <td class="p-3">$250.00</td>
+                            <td class="p-3 text-yellow-600">Pending</td>
+                            <td class="p-3">2025-02-13</td>
+                        </tr>
+                        <tr class="hover:bg-[#f1f5f9]">
+                            <td class="p-3">TXN12347</td>
+                            <td class="p-3">Bob Johnson</td>
+                            <td class="p-3">$75.30</td>
+                            <td class="p-3 text-red-600">Failed</td>
+                            <td class="p-3">2025-02-12</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div class="flex mt-4">
+                <button class="rounded-xl h-10 px-4 bg-[#1980e6] text-white text-sm font-bold">Contact Support</button>
+            </div>
+
+            <!-- Merchant Details -->
+            <div class="flex-1 bg-white p-6 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4">Merchant Details</h2>
+                <p class="text-slate-700"><strong>Merchant ID:</strong> {{user_id}}</p>
+                <p class="text-slate-700"><strong>Merchant Email:</strong> {{email}}</p>
+                <p class="text-slate-700"><strong>Merchant First Name:</strong> {{first_name}}</p>
+                <p class="text-slate-700"><strong>Merchant Last Name:</strong> {{last_name}}</p>
+                <p class="text-slate-700"><strong>Merchant Phone Number:</strong> {{phone_number}}</p>
+                <p class="text-slate-700"><strong>Merchant Address:</strong> {{address}}</p>
+                <p class="text-slate-700"><strong>Merchant City:</strong> {{city}}</p>
+                <p class="text-slate-700"><strong>Merchant State:</strong> {{state}}</p>
+                <p class="text-slate-700"><strong>Merchant Country:</strong> {{country}}</p>
+                <p class="text-slate-700"><strong>Merchant Zipcode:</strong> {{zip_code}}</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+
+    </script>
+
+
+</body>
+</html>
