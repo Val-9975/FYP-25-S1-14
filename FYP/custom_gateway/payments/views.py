@@ -39,11 +39,11 @@ def customer_dashboard(request):
 def merchant_dashboard(request):
     user = request.user  # Get the currently logged-in user
 
-    # Fetch the merchant's transactions using the user's email (customer_email in the transaction model)
-    merchant_transactions = MerchantTransaction.objects.filter(customer_email=user.email)
+    merchant_transactions = MerchantTransaction.objects.filter(merchant__user_id=user.user_id)
 
     # Calculate the total balance (sum of amount_sent)
     total_balance = merchant_transactions.aggregate(Sum('amount_sent'))['amount_sent__sum'] or 0
+
 
     # Prepare the context with merchant information and filtered transactions
     context = {
