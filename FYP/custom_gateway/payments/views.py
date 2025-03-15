@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Sum
 from .models import MerchantTransaction, LegacyUser, Transaction
 from .login import handle_login
 from .logout import custom_logout
@@ -35,24 +36,33 @@ def customer_dashboard(request):
     return render(request, 'customerUI.html', context)
 
 @login_required
-def merchant_dashboard(request) :
-    user = request.user #get currently logged in user
+def merchant_dashboard(request):
+    user = request.user  # Get the currently logged-in user
 
+    # Fetch the merchant's transactions using the user's email (customer_email in the transaction model)
+    merchant_transactions = MerchantTransaction.objects.filter(customer_email=user.email)
+
+    # Calculate the total balance (sum of amount_sent)
+    total_balance = merchant_transactions.aggregate(Sum('amount_sent'))['amount_sent__sum'] or 0
+
+    # Prepare the context with merchant information and filtered transactions
     context = {
-        'user_id' : user.pk,
-        'email' : user.email,
-        'first_name' : user.first_name,
-        'last_name' : user.last_name,
-        'phone_number' : user.phone_number,
-        'address' : user.address,
-        'city' : user.city,
-        'state' : user.state,
-        'country' : user.country,
-        'zip_code' : user.zip_code,
-        #make sure user mode in model.py has these fields
-
+        'user_id': user.pk,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'phone_number': user.phone_number,
+        'address': user.address,
+        'city': user.city,
+        'state': user.state,
+        'country': user.country,
+        'zip_code': user.zip_code,
+        'transactions': merchant_transactions,  # Add the filtered transactions to the context
+        'total_balance': total_balance,  # Add total balance to the context
     }
+
     return render(request, 'merchantUI.html', context)
+
 
 @login_required
 def helpDesk_dashboard(request) :
@@ -165,3 +175,7 @@ def customer_ui(request):
 
 def contact_support(request):
     return render(request, 'contact.html')
+
+def merchant_transactions_view(request):
+    transactions = MerchantTransaction.objects.all()  # Fetch all transactions
+    return render(request, 'transactions.html', {'transactions': transactions})
