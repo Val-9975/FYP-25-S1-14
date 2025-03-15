@@ -242,6 +242,14 @@
                       <h2>Total Balance</h2>
                       <p id="totalBalance">${{ total_balance|floatformat:2 }}</p>
                   </div>
+                  <div class="card">
+                      <h2>Successful Transactions</h2>
+                      <p id="successCount">{{ success_count }}</p>
+                  </div>
+                  <div class="card">
+                      <h2>Pending Transactions</h2>
+                      <p id="pendingCount">{{ pending_count }}</p>
+                  </div>
               </div>
               <div class="table-container">
                 <h2>Recent Transactions</h2>
@@ -254,6 +262,7 @@
                       <th>Amount</th>
                       <th>Payment Method</th>
                       <th>Timestamp</th>
+                      <th>Status</th>
                   </tr>
                   {% for transaction in transactions %}
                   <tr>
@@ -264,6 +273,15 @@
                       <td>{{ transaction.amount_sent }}</td>
                       <td>{{ transaction.payment_method }}</td>
                       <td>{{ transaction.created_at }}</td>
+                      <td>
+                        {% if transaction.status == 'success' %}
+                            <span style="color: green;">Success</span>
+                        {% elif transaction.status == 'failed' %}
+                            <span style="color: red;">Failed</span>
+                        {% else %}
+                            <span style="color: orange;">Pending</span>
+                        {% endif %}
+                    </td>
                   </tr>
                   {% empty %}
                   <tr>

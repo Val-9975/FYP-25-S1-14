@@ -66,6 +66,11 @@ class MerchantTransaction(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={'role_id': 2}  # ensures only merchants are selectable
     )
+    STATUS_CHOICES = [
+    ('pending', 'Pending'),
+    ('success', 'Success'),
+    ('failed', 'Failed'),
+    ]
     customer_email = models.EmailField()
     customer_first_name = models.CharField(max_length=50)
     customer_last_name = models.CharField(max_length=50)
@@ -78,6 +83,7 @@ class MerchantTransaction(models.Model):
     state = models.CharField(max_length=50, null=True, blank=True)
     country = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
 
     class Meta:
         db_table = 'merchant_transactions'

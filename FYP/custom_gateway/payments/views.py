@@ -42,7 +42,13 @@ def merchant_dashboard(request):
     merchant_transactions = MerchantTransaction.objects.filter(merchant__user_id=user.user_id)
 
     # Calculate the total balance (sum of amount_sent)
-    total_balance = merchant_transactions.aggregate(Sum('amount_sent'))['amount_sent__sum'] or 0
+    total_balance = merchant_transactions.filter(status='success').aggregate(Sum('amount_sent'))['amount_sent__sum'] or 0
+    
+    # Get count of successful transactions
+    success_count = merchant_transactions.filter(status='success').count()
+
+    # Get count of pending transactions
+    pending_count = merchant_transactions.filter(status='pending').count()
 
 
     # Prepare the context with merchant information and filtered transactions
@@ -59,6 +65,8 @@ def merchant_dashboard(request):
         'zip_code': user.zip_code,
         'transactions': merchant_transactions,  # Add the filtered transactions to the context
         'total_balance': total_balance,  # Add total balance to the context
+        'success_count': success_count,
+        'pending_count': pending_count,
     }
 
     return render(request, 'merchantUI.html', context)
@@ -107,21 +115,19 @@ def systemAdmin_dashboard(request) :
 @login_required
 def process_money_transfer(request):
     if request.method == 'POST':
-        # Retrieve data from the form
         merchant_email = request.POST.get('merchant_email')
         amount = request.POST.get('amount')
-        #currency = request.POST.get('currency')
         payment_method = request.POST.get('payment_method')
         card_number = request.POST.get('card_number', '')
 
-        # Look up the merchant using the provided email and ensure they are a merchant (role_id = 2)
+        # Look up the merchant
         merchant = get_object_or_404(LegacyUser, email=merchant_email, role_id=2)
 
-        # Generate a unique transaction number (e.g., a 12-character string)
+        # Generate a unique transaction number
         transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
 
-        # Create the MerchantTransaction record using the logged-in customer's details
-        MerchantTransaction.objects.create(
+        # Assume the payment is "Pending" initially
+        transaction = MerchantTransaction.objects.create(
             merchant=merchant,
             customer_email=request.user.email,
             customer_first_name=request.user.first_name,
@@ -133,13 +139,35 @@ def process_money_transfer(request):
             address=request.user.address,
             city=request.user.city,
             state=request.user.state,
-            country=request.user.country
+            country=request.user.country,
+            status='pending'
         )
 
-        # Redirect to a success page or purchase view after processing
+        # Simulate payment processing (You can integrate an actual payment gateway here)
+        payment_success = process_payment_mock(amount, card_number)
+
+        # Update status based on payment result
+        if payment_success:
+            transaction.status = 'success'
+        else:
+            transaction.status = 'failed'
+
+        transaction.save()
+
         return redirect('view_purchase')
     else:
         return redirect('customer_dashboard')
+
+
+def process_payment_mock(amount, card_number):
+    """
+    Simulated payment processing function.
+    Returns True for success and False for failure.
+    """
+    if card_number and len(card_number) == 16 and float(amount) > 0:
+        return True  # Payment success
+    return False  # Payment failed
+
 
 def process_payment(request):
     # Placeholder logic; replace with your actual payment processing code.
