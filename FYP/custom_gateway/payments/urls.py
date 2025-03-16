@@ -11,6 +11,6 @@ urlpatterns = [
     path('payments/transfer/', views.process_money_transfer, name='process_money_transfer'),
     
     path('dashboard/merchant/', views.merchant_dashboard, name='merchant_dashboard'),
-    
+    path('dashboard/merchant/contact/', views.contact_support, name='contact_support_merchant'),
 ]
 

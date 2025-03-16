@@ -227,7 +227,15 @@ def customer_ui(request):
     return render(request, 'customerUI.html')
 
 def contact_support(request):
-    return render(request, 'contact.html')
+    user = request.user
+
+    # Check how you differentiate merchants from customers
+    if hasattr(user, 'role_id') and user.role_id == 2:
+        dashboard_url = 'merchant_dashboard'
+    else:
+        dashboard_url = 'customer_dashboard'
+
+    return render(request, 'contact.html', {'dashboard_url': dashboard_url})
 
 def merchant_transactions_view(request):
     transactions = MerchantTransaction.objects.all()  # Fetch all transactions
