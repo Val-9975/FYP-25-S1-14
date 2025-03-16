@@ -231,8 +231,13 @@
           <div class="relative mt-4">
               <button onclick="toggleDropdown()" class="rounded-xl h-10 px-4 bg-[#1980e6] text-white text-sm font-bold">Filter</button>
               <div id="filterDropdown" class="absolute bg-white shadow-md rounded-xl mt-2 p-4 hidden">
-                  <input id="filterInput" type="text" class="border p-3 rounded-md w-80" placeholder="Search by status..." onkeyup="filterTransactions()">
-                  <button onclick="filterTransactions()" class="mt-2 w-full bg-[#1980e6] text-white p-2 rounded-md">Apply</button>
+                <select id="statusFilter" class="border p-3 rounded-md w-80" onchange="applyFilter()">
+                  <option value="">Filter by Status</option>
+                  <option value="success" {% if request.GET.status == 'success' %}selected{% endif %}>Success</option>
+                  <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                  <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Failed</option>
+                </select>
+                  <button onclick="applyFilter()" class="mt-2 w-full bg-[#1980e6] text-white p-2 rounded-md">Apply</button>
               </div>
           </div>
 
@@ -323,32 +328,21 @@
           document.getElementById("myDropdown").classList.toggle("show");
         }
         
-        function filterFunction() {
-          const input = document.getElementById("myInput");
-          const filter = input.value.toUpperCase();
-          const div = document.getElementById("myDropdown");
-          const a = div.getElementsByTagName("a");
-          for (let i = 0; i < a.length; i++) {
-            txtValue = a[i].textContent || a[i].innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-              a[i].style.display = "";
-            } else {
-              a[i].style.display = "none";
-            }
+        function toggleDropdown() {
+          const dropdown = document.getElementById('filterDropdown');
+          dropdown.classList.toggle('hidden'); // Toggle the 'hidden' class to show/hide dropdown
+      }
+    
+      function applyFilter() {
+          const status = document.getElementById('statusFilter').value; // Get selected status value
+          let url = window.location.href.split('?')[0]; // Get the base URL without query params
+      
+          // Check if the filter is selected and add it to the URL
+          if (status) {
+              url += `?status=${status}`;
           }
-        }
-
-            function toggleDropdown() {
-              document.getElementById("filterDropdown").classList.toggle("hidden");
-          }
-          function filterTransactions() {
-              const input = document.getElementById("filterInput").value.toUpperCase();
-              const tableRows = document.querySelectorAll("tbody tr");
-              tableRows.forEach(row => {
-                  const status = row.children[3].textContent.toUpperCase();
-                  row.style.display = status.includes(input) ? "" : "none";
-              });
-          }
+          window.location.href = url; // Redirect to the updated URL to apply the filter
+      }
         </script>
 </body>
 </html>
