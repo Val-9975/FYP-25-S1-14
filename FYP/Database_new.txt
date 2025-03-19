@@ -121,3 +121,12 @@ CREATE TABLE merchant_transactions (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (merchant_id) REFERENCES users(user_id)
 );
+
+CREATE TABLE `users_complaints` (
+  `id` bigint(20) NOT NULL,
+  complaint_text longtext NOT NULL,
+  category varchar(50) NOT NULL,
+  created_at datetime(6) NOT NULL,
+  complained_against_id int(11) NOT NULL,
+  user_id int(11) DEFAULT NULL
+)
