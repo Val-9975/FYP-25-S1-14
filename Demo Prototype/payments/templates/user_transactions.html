@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Transactions</title>
+</head>
+<body>
+    <h2>My Transactions</h2>
+    {% if transactions %}
+      <ul>
+        {% for transaction in transactions %}
+          <li>ID: {{ transaction.transaction_id }} - Amount: {{ transaction.amount }} - Status: {{ transaction.status }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No transactions found.</p>
+    {% endif %}
+</body>
+</html>
