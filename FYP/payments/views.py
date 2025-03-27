@@ -606,3 +606,8 @@ def update_user_status(request):
 
     else:
         return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
+    
+
+def testing_stuff(request):
+    #lmao even
+    return render(request, 'HelpDeskUI.html')
