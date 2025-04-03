@@ -2,22 +2,91 @@ import uuid
 import threading
 import time
 import random
+import datetime
+from django.shortcuts import render
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib import messages
+from .models import MerchantTransaction, LegacyUser, Transaction, Complaint
 from django.db.models import Sum
-from .models import MerchantTransaction, LegacyUser, Transaction
-from .login import handle_login
+from .login import authenticate_user
+from .verifyOTP import verify_otp_user
 from .logout import custom_logout
+from .forms import ComplaintForm
 
-def custom_login(request):
-    response = handle_login(request)  # Call login function
+def create_user(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone_number = request.POST.get('phone_number')
+        address = request.POST.get('address')
+        city = request.POST.get('city')
+        state = request.POST.get('state')
+        country = request.POST.get('country')
+        zip_code = request.POST.get('zip_code')
 
-    if response is None:  # Ensure a valid response is returned
-        return render(request, 'login.html')  
+        # Set role_id based on user type (Customer: 1, Merchant: 2)
+        role_id = request.POST.get('role')  # Get role_id from form input
+        
+        try:
+            role_id = int(role_id)  # Convert to integer
+        except ValueError:
+            messages.error(request, "Invalid Role ID")
+            return render(request, 'createUsers.html', {'email': email, 'first_name': first_name, 'last_name': last_name, 'phone_number': phone_number, 'address': address, 'city': city, 'state': state, 'country': country, 'zip_code': zip_code})
 
-    return response  # Return the response from handle_login
+        status = request.POST.get('status', 'active')  # Default to 'active' if not provided
+
+        # Hash the password before saving (not hashing for now, if not cannot see in database)
+        #hashed_password = make_password(password)
+
+        # Create the user and save to the database
+        user = LegacyUser(
+            email=email,
+            password=password, #hashed_password to hash it
+            first_name=first_name,
+            last_name=last_name,
+            phone_number=phone_number,
+            address=address,
+            city=city,
+            state=state,
+            country=country,
+            zip_code=zip_code,
+            role_id=role_id,
+            status=status
+        )
+        user.save()
+        messages.success(request, f'User {email} created successfully')
+        return redirect('create_user')  # Redirect after successful creation
+
+    return render(request, 'createUsers.html')
+
+def handle_login(request):
+    if request.method == "POST":
+        if authenticate_user(request):  # Calls function from login.py
+            return redirect('verify_otp')
+        else:
+            messages.error(request, "Invalid email or password.")
+            return render(request, 'login.html')
+
+    return render(request, 'login.html')
+
+
+def verify_otp(request):
+    if request.method == "POST":
+        redirect_page = verify_otp_user(request)  # Calls function from verify.py
+        if redirect_page:
+            return redirect(redirect_page)
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+            return render(request, 'verify_otp.html')
+
+    return render(request, 'verify_otp.html')
 
 @login_required
 def customer_dashboard(request):
@@ -91,6 +160,21 @@ def filter_transactions(user, status_filter=None):
 
     return transactions
 
+def luhn_check(card_number):
+    """ Validate card number using Luhn Algorithm """
+    digits = [int(d) for d in card_number[::-1]]
+    checksum = sum(digits[0::2]) + sum(sum(divmod(2 * d, 10)) for d in digits[1::2])
+    return checksum % 10 == 0
+
+def is_expired(expiry_date):
+    """ Check if the expiry date is in the future (MM/YY format) """
+    try:
+        exp_month, exp_year = map(int, expiry_date.split("/"))
+        exp_year += 2000  # Convert YY to YYYY
+        return datetime.date(exp_year, exp_month, 1) < datetime.date.today()
+    except:
+        return True  # If format is wrong, consider it expired
+
 @login_required
 def helpDesk_dashboard(request) :
     user = request.user #get currently logged in user
@@ -131,6 +215,26 @@ def systemAdmin_dashboard(request) :
     }
     return render(request, 'SysAdminUI.html', context)
 
+def is_valid_card(card_number):
+    """ Validate credit card number using Luhn Algorithm """
+    card_number = card_number.replace(" ", "")  # Remove spaces
+
+    if not card_number.isdigit() or len(card_number) not in [13, 15, 16]:
+        return False
+
+    total = 0
+    reverse_digits = card_number[::-1]
+
+    for i, digit in enumerate(reverse_digits):
+        num = int(digit)
+        if i % 2 == 1:
+            num *= 2
+            if num > 9:
+                num -= 9
+        total += num
+
+    return total % 10 == 0
+
 @login_required
 def process_money_transfer(request):
     if request.method == 'POST':
@@ -141,6 +245,10 @@ def process_money_transfer(request):
 
         # Look up the merchant
         merchant = get_object_or_404(LegacyUser, email=merchant_email, role_id=2)
+        
+        if not is_valid_card(card_number):
+            messages.error(request, "Invalid credit card number.")
+            return redirect('customer_dashboard')
 
         # Generate a unique transaction number
         transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
@@ -193,7 +301,6 @@ def process_payment_delayed(transaction_id, amount, card_number):
     except MerchantTransaction.DoesNotExist:
         print(f"Transaction {transaction_id} does not exist.")
 
-
 def process_payment(request):
     # Placeholder logic; replace with your actual payment processing code.
     return render(request, 'process_payment.html')
@@ -211,7 +318,7 @@ def user_transactions(request):
 def custom_logout(request):
     # Django will handle session clearing automatically when calling logout()
     logout(request)
-    return redirect('login')  # Redirect to login page after logout
+    return redirect('handle_login')  # Redirect to login page after logout
 
 
 @login_required
@@ -227,16 +334,51 @@ def customer_ui(request):
     return render(request, 'customerUI.html')
 
 def contact_support(request):
-    user = request.user
-
-    # Check how you differentiate merchants from customers
-    if hasattr(user, 'role_id') and user.role_id == 2:
-        dashboard_url = 'merchant_dashboard'
-    else:
-        dashboard_url = 'customer_dashboard'
-
-    return render(request, 'contact.html', {'dashboard_url': dashboard_url})
+    return render(request, 'contact.html')
 
 def merchant_transactions_view(request):
     transactions = MerchantTransaction.objects.all()  # Fetch all transactions
     return render(request, 'transactions.html', {'transactions': transactions})
+
+@login_required
+def complaints_view(request):
+    # Get the complaints related to the logged-in user
+    complaints = Complaint.objects.filter(user=request.user)
+    
+    # Get a list of user emails, excluding the current user's email
+    user_emails = LegacyUser.objects.exclude(email=request.user.email).values_list('email', flat=True)
+    
+    # Pass the complaints and emails to the template
+    context = {
+        'complaints': complaints,
+        'user_email': request.user.email,
+        'user_emails': user_emails,
+    }
+    
+    return render(request, 'complaints.html', context)
+
+
+@login_required
+def submit_complaint(request):
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST)
+        if form.is_valid():
+            # Set the complainant (user) to the logged-in user
+            complaint = form.save(commit=False)
+            complaint.user = request.user  # Automatically set the logged-in user as the complainant
+            complaint.save()
+
+            messages.success(request, "Complaint submitted successfully.")
+            return redirect('complaints_view')  # Or wherever you want to redirect after success
+    else:
+        form = ComplaintForm()
+
+    return render(request, 'complaints.html', {'form': form})
+
+@login_required
+def view_submitted_complaints(request):
+    role_id = request.user.role_id  
+    # Fetch complaints for the currently logged-in user
+    complaints = Complaint.objects.filter(user=request.user)
+    
+    return render(request, 'viewSubmittedComplaints.html', {'role_id': role_id, 'complaints': complaints})

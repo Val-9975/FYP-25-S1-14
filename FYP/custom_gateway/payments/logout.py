@@ -9,4 +9,4 @@ def custom_logout(request):
     logout(request)
 
     # Redirect to login page
-    return redirect('login')
+    return redirect('handle_login')

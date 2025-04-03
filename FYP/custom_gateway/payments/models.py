@@ -87,3 +87,24 @@ class MerchantTransaction(models.Model):
 
     class Meta:
         db_table = 'merchant_transactions'
+
+class Complaint(models.Model):
+    CATEGORY_CHOICES = [
+        ('Poor Service', 'Poor Service'),
+        ('Account Issue', 'Account Issue'),
+        ('Fraud', 'Fraud'),
+        ('Monetary Issue', 'Monetary Issue'),
+    ]
+    
+    user = models.ForeignKey(LegacyUser, on_delete=models.CASCADE, related_name="complaints", null=True, blank=True)  # The user filing the complaint
+    complained_against = models.ForeignKey(LegacyUser, on_delete=models.CASCADE, related_name='complaints_against')
+    complaint_text = models.TextField(max_length=200)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        # Ensure the string returns the emails of the complainant and the user being complained about
+        return f"Complaint by {self.user.email} against {self.complained_against.email}"
+    
+    class Meta:
+        db_table = 'users_complaints'
