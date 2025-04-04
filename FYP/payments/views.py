@@ -23,6 +23,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from .login import authenticate_user
 from .verifyOTP import verify_otp_user
+import stripe
 logger = logging.getLogger(__name__)
 
 
@@ -321,24 +322,77 @@ def merchant_transactions_view(request):
 @login_required
 def process_money_transfer(request):
     if request.method == 'POST':
+        # Extract form data
         merchant_email = request.POST.get('merchant_email')
         amount_str = request.POST.get('amount')
-        payment_method = request.POST.get('payment_method')
+        payment_method = request.POST.get('payment_method').upper()
         card_number = request.POST.get('card_number', '')
+        exp_month = request.POST.get('exp_month')
+        exp_year = request.POST.get('exp_year')
+        cvc = request.POST.get('cvc')
 
+        # Validate amount
         try:
             amount = Decimal(amount_str)
+            if amount <= 0:
+                raise ValueError
         except Exception:
             messages.error(request, "Invalid amount.")
             return redirect('customer_dashboard')
 
         merchant = get_object_or_404(LegacyUser, email=merchant_email, role_id=2)
-        token = f"tok_{uuid.uuid4().hex}"
-        transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
         user = request.user
+        transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
+        token = f"tok_{uuid.uuid4().hex}"
 
+        # SAFEPAY WALLET LOGIC
+        if payment_method == "SAFEPAY WALLET":
+            if user.wallet_balance < amount:
+                MerchantTransaction.objects.create(
+                    merchant=merchant,
+                    customer_email=user.email,
+                    customer_first_name=user.first_name,
+                    customer_last_name=user.last_name,
+                    transaction_number=transaction_number,
+                    amount_sent=amount,
+                    payment_method=payment_method,
+                    phone_number=user.phone_number,
+                    address=user.address,
+                    city=user.city,
+                    state=user.state,
+                    country=user.country,
+                    status='failed'
+                )
+                messages.error(request, "Insufficient wallet balance. Transaction failed.")
+                return redirect('view_purchase')
+            
+            user.wallet_balance -= amount
+            user.save(update_fields=['wallet_balance'])
+            status = 'completed'
+
+        # CREDIT/DEBIT CARD LOGIC
+        else:
+            try:
+                # Stripe card validation (no $0 auth)
+                payment_method = stripe.PaymentMethod.create(
+                    type="card",
+                    card={
+                        "number": card_number,
+                        "exp_month": exp_month,
+                        "exp_year": exp_year,
+                        "cvc": cvc,
+                    },
+                )
+                status = 'pending'
+            except stripe.error.CardError as e:
+                messages.error(request, f"Card declined: {e.error.message}")
+                return redirect('customer_dashboard')
+            except Exception as e:
+                messages.error(request, "Payment processing error")
+                return redirect('customer_dashboard')
+
+        # Create transaction records
         with db_transaction.atomic():
-            # Create transaction entries
             transaction = MerchantTransaction.objects.create(
                 merchant=merchant,
                 customer_email=user.email,
@@ -352,7 +406,7 @@ def process_money_transfer(request):
                 city=user.city,
                 state=user.state,
                 country=user.country,
-                status='pending'
+                status=status
             )
 
             Transaction.objects.create(
@@ -363,64 +417,24 @@ def process_money_transfer(request):
                 status='success'
             )
 
-            TokenVault.create_entry(token=token, card_number=card_number)
+            # Store only the Stripe payment method ID, not raw card number
+            if payment_method != "SAFEPAY WALLET":
+                TokenVault.create_entry(
+                    token=token,
+                    stripe_payment_method_id=payment_method.id
+                )
 
-        # Start the delayed payment status update thread
-        print(f"DEBUG: Starting thread for transaction {transaction.id}", flush=True)
-        thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
-        thread.start()
+        # Start delayed processing for card payments
+        if payment_method != "SAFEPAY WALLET":
+            thread = threading.Thread(
+                target=process_payment_delayed, 
+                args=(transaction.id, amount, payment_method.id)
+            )
+            thread.start()
 
         return redirect('view_purchase')
 
-
-    if payment_method.upper() == "SAFEPAY WALLET":
-        if user.wallet_balance < amount:
-            # Create transaction with failed status
-            transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
-            MerchantTransaction.objects.create(
-                merchant=merchant,
-                customer_email=user.email,
-                customer_first_name=user.first_name,
-                customer_last_name=user.last_name,
-                transaction_number=transaction_number,
-                amount_sent=amount,
-                payment_method=payment_method,
-                phone_number=user.phone_number,
-                address=user.address,
-                city=user.city,
-                state=user.state,
-                country=user.country,
-                status='failed'
-            )
-            messages.error(request, "Insufficient wallet balance. Transaction failed.")
-            return redirect('view_purchase')
-        else:
-            user.wallet_balance -= amount
-            user.save(update_fields=['wallet_balance'])
-
-    # Move this outside of the SAFEPAY WALLET check so it's always executed
-    transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
-    transaction = MerchantTransaction.objects.create(
-        merchant=merchant,
-        customer_email=user.email,
-        customer_first_name=user.first_name,
-        customer_last_name=user.last_name,
-        transaction_number=transaction_number,
-        amount_sent=amount,
-        payment_method=payment_method,
-        phone_number=user.phone_number,
-        address=user.address,
-        city=user.city,
-        state=user.state,
-        country=user.country,
-        status='pending'
-    )
-
-    thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
-    thread.start()
-
-    return redirect('view_purchase')
-
+    return redirect('customer_dashboard')
         
 
 @login_required
