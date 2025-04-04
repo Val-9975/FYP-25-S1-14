@@ -23,6 +23,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from .login import authenticate_user
 from .verifyOTP import verify_otp_user
+import stripe
 logger = logging.getLogger(__name__)
 
 
@@ -237,29 +238,69 @@ def systemAdmin_dashboard(request) :
     return render(request, 'SysAdminUI.html', context)
 
 
-def process_payment_delayed(transaction_id, amount, card_number):
+def process_payment_delayed(transaction_id, amount, stripe_payment_method_id):
     """
-    Simulated delayed payment processing function.
-    The status is updated after 10 seconds.
+    Processes payment asynchronously using Stripe after simulated delay
+    Maintains your existing logging structure while adding Stripe integration
     """
-    print(f"Starting payment delay for transaction {transaction_id}", flush=True)  # Debugging log
-    time.sleep(20)  # Simulate processing delay
-
+    print(f"Starting payment delay for transaction {transaction_id}", flush=True)
+    
+    # Simulate processing delay (keep your existing 20s delay)
+    time.sleep(20)
+    
     try:
-        # Retrieve the transaction from the database
         transaction = MerchantTransaction.objects.get(id=transaction_id)
-        print(f"Processing transaction {transaction.transaction_number}", flush=True)  # Debugging log
-
-        # Simulate payment success (replace with real logic)
-        transaction.status = 'success' if float(transaction.amount_sent) > 0 else 'failed'
+        print(f"Processing transaction {transaction.transaction_number}", flush=True)
         
-
-        # Save the updated status
-        transaction.save()
-        print(f"Transaction {transaction.transaction_number} updated to {transaction.status}")
-
+        # Only process if status is still pending
+        if transaction.status == 'pending':
+            # REAL PAYMENT PROCESSING (replacing your simulation)
+            try:
+                # Initialize Stripe
+                stripe.api_key = settings.STRIPE_SECRET_KEY
+                
+                # Create and confirm payment intent
+                payment_intent = stripe.PaymentIntent.create(
+                    amount=int(float(amount) * 100),  # Convert to cents
+                    currency='usd',
+                    payment_method=stripe_payment_method_id,
+                    confirm=True,
+                    off_session=True,  # Important for delayed payments
+                    metadata={
+                        'transaction_id': transaction.transaction_number,
+                        'merchant_id': transaction.merchant.id
+                    }
+                )
+                
+                # Update status based on Stripe response
+                if payment_intent.status == 'succeeded':
+                    transaction.status = 'completed'
+                    transaction.stripe_payment_intent_id = payment_intent.id
+                    print(f"Payment succeeded for {transaction.transaction_number}")
+                else:
+                    transaction.status = 'failed'
+                    print(f"Payment failed for {transaction.transaction_number}")
+            
+            except stripe.error.CardError as e:
+                transaction.status = 'failed'
+                transaction.failure_reason = e.error.message
+                print(f"Card declined for {transaction.transaction_number}: {e.error.message}")
+            
+            except Exception as e:
+                transaction.status = 'failed'
+                transaction.failure_reason = str(e)
+                print(f"Processing error for {transaction.transaction_number}: {str(e)}")
+            
+            finally:
+                transaction.save()
+                print(f"Transaction {transaction.transaction_number} updated to {transaction.status}")
+        else:
+            print(f"Transaction {transaction.transaction_number} already processed (status: {transaction.status})")
+    
     except MerchantTransaction.DoesNotExist:
         print(f"Transaction {transaction_id} does not exist.")
+    except Exception as e:
+        print(f"Unexpected error processing transaction {transaction_id}: {str(e)}")
 
 
 def process_payment(request):
