@@ -607,8 +607,7 @@ def update_user_status(request):
     else:
         return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
     
-@login_required
 
-def testfunction(request):
-    user_statuses = UserAccountStatus.objects.all()
-    return render(request, 'SysAdminManageStatus.html', {'user_statuses': user_statuses})
+@login_required
+def test(request):
+    return render(request, 'Something.html')
