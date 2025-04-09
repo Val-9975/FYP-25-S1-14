@@ -95,7 +95,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
-        'PASSWORD': 'roymewex3',              # Replace with your MySQL password
+        'PASSWORD': '151515',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
         'PORT': '3306',              # Default MySQL port
     }
