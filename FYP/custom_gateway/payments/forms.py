@@ -19,3 +19,15 @@ class ComplaintForm(forms.ModelForm):
         # Optionally, set a default selection or filtering options based on user email or some other condition
         self.fields['complained_against'].queryset = LegacyUser.objects.all()  # Ensure we show all users
 
+
+class TicketUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['status', 'comments']
+
+    STATUS_CHOICES = [
+        ('Open', 'Open'),
+        ('Closed', 'Closed'),
+    ]
+    status = forms.ChoiceField(choices=STATUS_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
+    comments = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-textarea', 'rows': 4}))

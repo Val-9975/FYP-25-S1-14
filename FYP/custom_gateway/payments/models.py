@@ -1,5 +1,9 @@
 from django.db import models
 from django.conf import settings
+from cryptography.fernet import Fernet
+from django.utils.functional import cached_property
+from django.contrib.auth.models import User
+import uuid
 
 class Transaction(models.Model):
     user = models.ForeignKey(
@@ -18,6 +22,24 @@ class Transaction(models.Model):
     def __str__(self):
         return self.transaction_id
 
+class TokenVault(models.Model):
+    token = models.CharField(max_length=36, unique=True)  # Matches Transaction.token
+    encrypted_card_number = models.CharField(max_length=255)  # Encrypted card number
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def create_entry(cls, token, card_number):
+        """Encrypt card number and save to vault."""
+        encrypted_card = fernet.encrypt(card_number.encode()).decode()
+        return cls.objects.create(token=token, encrypted_card_number=encrypted_card)
+
+    def get_card_number(self):
+        """Decrypt card number (for authorized use only)."""
+        return fernet.decrypt(self.encrypted_card_number.encode()).decode()
+
+    class Meta:
+        db_table = 'payments_tokenvault'
+
 class LegacyUser(models.Model):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True)
@@ -34,6 +56,7 @@ class LegacyUser(models.Model):
     status = models.CharField(max_length=20, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = 'users'  # Map to your existing table
@@ -108,3 +131,34 @@ class Complaint(models.Model):
     
     class Meta:
         db_table = 'users_complaints'
+        
+class SecurityProtocol(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    version = models.CharField(max_length=50)
+    description = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False  
+        db_table = 'security_protocol'
+
+    def __str__(self):
+        return f"{self.name} (v{self.version})"
+    
+class UserAccountStatus(models.Model):
+    email = models.EmailField(primary_key=True)
+    password = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=50, null=True, blank=True)
+    state = models.CharField(max_length=50, null=True, blank=True)
+    country = models.CharField(max_length=50, null=True, blank=True)
+    zip_code = models.CharField(max_length=20, null=True, blank=True)
+    role_id = models.IntegerField()
+    account_status = models.CharField(max_length=20, default='Available')
+
+    class Meta:
+        db_table = 'user_account_status'
+        managed = False  
