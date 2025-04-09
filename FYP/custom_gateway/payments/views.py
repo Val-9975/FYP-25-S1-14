@@ -160,21 +160,6 @@ def filter_transactions(user, status_filter=None):
 
     return transactions
 
-def luhn_check(card_number):
-    """ Validate card number using Luhn Algorithm """
-    digits = [int(d) for d in card_number[::-1]]
-    checksum = sum(digits[0::2]) + sum(sum(divmod(2 * d, 10)) for d in digits[1::2])
-    return checksum % 10 == 0
-
-def is_expired(expiry_date):
-    """ Check if the expiry date is in the future (MM/YY format) """
-    try:
-        exp_month, exp_year = map(int, expiry_date.split("/"))
-        exp_year += 2000  # Convert YY to YYYY
-        return datetime.date(exp_year, exp_month, 1) < datetime.date.today()
-    except:
-        return True  # If format is wrong, consider it expired
-
 @login_required
 def helpDesk_dashboard(request) :
     user = request.user #get currently logged in user
@@ -235,6 +220,15 @@ def is_valid_card(card_number):
 
     return total % 10 == 0
 
+def is_expired(expiry_date):
+    """ Check if the expiry date is in the future (MM/YY format) """
+    try:
+        exp_month, exp_year = map(int, expiry_date.split("/"))
+        exp_year += 2000  # Convert YY to YYYY
+        return datetime.date(exp_year, exp_month, 1) < datetime.date.today()
+    except:
+        return True  # If format is wrong, consider it expired
+
 @login_required
 def process_money_transfer(request):
     if request.method == 'POST':
@@ -247,7 +241,7 @@ def process_money_transfer(request):
         merchant = get_object_or_404(LegacyUser, email=merchant_email, role_id=2)
         
         if not is_valid_card(card_number):
-            messages.error(request, "Invalid credit card number.")
+            messages.error(request, "Invalid card number.")
             return redirect('customer_dashboard')
 
         # Generate a unique transaction number
