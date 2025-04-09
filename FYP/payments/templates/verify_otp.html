@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans:wght@400;500;700;900&amp;family=Work+Sans:wght@400;500;700;900"/>
+    <style>
+        body {
+            font-family: "Work Sans", "Noto Sans", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px;
+        }
+        .container h2 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .input-field {
+            width: 90%;
+            padding: 14px;
+            margin: 14px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 20px;
+            text-align: center;
+            letter-spacing: 4px; /* Spaces out digits for clarity */
+        }
+        .verify-button {
+            width: 100%;
+            padding: 14px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+        .verify-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flex items-center gap-2">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
+            <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
+        </svg>
+    
+    <h2 class="text-lg font-bold">SafePay</h2>
+</div>
+
+    <div class="container">
+        <h2>Enter the 6-digit code for authentication</h2>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <p style="color: red;">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="otp" class="input-field" placeholder="Enter OTP" maxlength="6" required>
+            <button type="submit" onclick="localStorage.clear();" class="verify-button">Verify</button>
+        </form>
+    </div>
+
+</body>
+</html>
