@@ -10,7 +10,7 @@ fernet = Fernet(settings.FERNET_KEY)
 class Transaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    token = models.CharField(max_length=36, unique=True, default=uuid.uuid4().hex)  # Add default value
+    token = models.CharField(max_length=100, unique=True, default=uuid.uuid4().hex)  # Add default value
     transaction_id = models.CharField(max_length=12, unique=True)
     status = models.CharField(max_length=10, choices=[('success', 'Success'), ('failed', 'Failed')])
     created_at = models.DateTimeField(auto_now_add=True)
