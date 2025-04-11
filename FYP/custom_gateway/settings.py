@@ -95,9 +95,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
-        'PASSWORD': '151515',              # Replace with your MySQL password
+        'PASSWORD': '1234',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
-        'PORT': '3306',              # Default MySQL port
+        'PORT': '3307',              # Default MySQL port
     }
 }
 
@@ -161,3 +161,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Example for Gmail SMTP (update as needed)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'safepay2025@gmail.com'  # replace with your email
+EMAIL_HOST_PASSWORD = 'jwdg hwje yioh tqyb'  # use an app-specific password if using Gmail
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

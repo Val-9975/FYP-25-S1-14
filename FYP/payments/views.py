@@ -23,6 +23,11 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from .login import authenticate_user
 from .verifyOTP import verify_otp_user
+from datetime import datetime
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
 logger = logging.getLogger(__name__)
 
 

@@ -1,5 +1,9 @@
 from django.contrib.auth import authenticate, login
-from payments.models import UserAccountStatus
+from datetime import datetime
+from django.contrib import messages
+from django.shortcuts import redirect
+import random
+from .models import UserAccountStatus
 
 def verify_otp_user(request):
     entered_otp = request.POST.get('otp')
