@@ -9,36 +9,16 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
-<script>
-  function suspendCustomer(transactionId) {
-      if (confirm('Are you sure you want to suspend this customer?')) {
-          $.ajax({
-              url: "{% url 'suspend_customer' %}",
-              method: 'POST',
-              data: {
-                  'transaction_id': transactionId,
-                  'csrfmiddlewaretoken': '{{ csrf_token }}'
-              },
-              success: function(response) {
-                  if (response.status === 'success') {
-                      alert('Customer suspended successfully');
-                      location.reload();
-                  } else if (response.status === 'error') {
-                      alert(response.message);
-                  }
-              },
-              error: function() {
-                  alert('An error occurred while suspending the customer.');
-              }
-          });
-      }
-  }
-</script>
-
-<body class="bg-slate-50 font-[Work Sans,Noto Sans,sans-serif]">
+<body class="bg-slate-50" style="font-family: 'Work Sans', 'Noto Sans', sans-serif;">
   <div class="relative flex min-h-screen flex-col overflow-x-hidden">
-    <header class="flex items-center justify-between border-b border-[#e7edf3] px-10 py-3">
-      <h2 class="text-lg font-bold text-[#0e141b]">Monitor All Transactions Dashboard</h2>
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+      <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
+      <div class="flex items-center gap-2">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
+              <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
+          </svg>
+          <h2 class="text-lg font-bold">SafePay</h2>
+      </div>
       <div class="flex items-center gap-4">
         <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
         <!-- Logout Button -->
@@ -58,12 +38,12 @@
         <ul class="space-y-2">
           <li><a href="{% url 'sysadmin_dashboard' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">System Admin Details</a></li>
           <li>
-            <a href="{% url 'sysadmin_view_transactions' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">
+            <a href="{% url 'sysadmin_view_transactions' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] ">
               Monitor All Transactions
             </a>
           </li>
-          <li><a href="{% url 'sysadmin_manage_users' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Manage Users</a></li>
-          <li><a href="SysAdminSecuritySettings.html" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Security Settings</a></li>
+          <li><a href="{% url 'sysadmin_manage_users' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Manage Users</a></li>
+          <li><a href="{% url 'sysadmin_settings' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Security Settings</a></li>
         </ul>
       </div>
       <div class="flex-1 p-6">
@@ -84,9 +64,7 @@
               <p class="text-[#0e141b]"><strong>Payment Method:</strong> {{ transaction.payment_method }}</p>
               <p class="text-[#0e141b]"><strong>Date:</strong> {{ transaction.created_at|date:"Y-m-d H:i" }}</p>
               {% if transaction.amount_sent > 10000 %}
-                <button class="mt-4 bg-red-600 text-white px-4 py-2 rounded-xl" onclick="suspendCustomer('{{ transaction.id }}')">
-                  Suspend Customer
-                </button>
+                <button class="mt-4 bg-red-600 text-white px-4 py-2 rounded-xl" onclick="suspendCustomer('{{ transaction.id }}')">Suspend Customer</button>
               {% endif %}
             </div>
           {% endfor %}
@@ -96,5 +74,32 @@
       </div>
     </div>
   </div>
+
+  
+  <script>
+    function suspendCustomer(transactionId) {
+        if (confirm('Are you sure you want to suspend this customer?')) {
+            $.ajax({
+                url: "{% url 'suspend_customer' %}",
+                method: 'POST',
+                data: {
+                    'transaction_id': transactionId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('Customer suspended successfully');
+                    } else if (response.status === 'error') {
+                        alert(response.message); 
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while suspending the customer.');
+                }
+            });
+        }
+    }
+  </script>
+
 </body>
 </html>
