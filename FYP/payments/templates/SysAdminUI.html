@@ -8,7 +8,7 @@
     <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
-<body class="bg-slate-50 font-sans">
+<body class="bg-slate-50" style="font-family: 'Work Sans', 'Noto Sans', sans-serif;">
     <div class="flex flex-col min-h-screen">
         <!-- Top Navigation Bar -->
         <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
@@ -21,11 +21,9 @@
         </div>
             <div class="flex items-center gap-4">
                 <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
-                <button class="p-2 text-slate-700 hover:text-slate-900">🔔</button>
-                <button class="p-2 text-slate-700 hover:text-slate-900">📜</button>
                 <!-- Logout Button -->
                 <li class="list-none">
-                    <form action="{% url 'logout' %}" method="POST">
+                    <form action="/logout/" method="POST">
                         {% csrf_token %}
                         <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
                             Logout
@@ -41,7 +39,11 @@
             <div class="w-64 bg-white border-r border-slate-200 p-4">
                 <h2 class="text-lg font-bold text-slate-900 mb-4">Dashboard</h2>
                 <ul class="space-y-2">
-                    <li><a href="{% url 'sysadmin_dashboard' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">System Admin Details</a></li>
+                    <li>
+                        <a href="{% url 'sysadmin_dashboard' %}" class="flex items-center gap-3 p-2 text-[#0c1116] bg-[#e7edf3] rounded-xl">
+                            System Admin Details
+                        </a>
+                    </li>                                        
                     <li><a href="{% url 'sysadmin_view_transactions' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Monitor All Transactions</a></li>
                     <li><a href="{% url 'sysadmin_manage_users' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Manage Users</a></li>
                     <li><a href="{% url 'sysadmin_settings' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Security Settings</a></li>
@@ -49,18 +51,20 @@
             </div>
 
                 <!-- Admin Details -->
-                <div class="flex-1 bg-white p-6 shadow-sm">
-                    <h2 class="text-xl font-bold text-slate-900 mb-4">System Admin Details</h2>
-                    <p class="text-slate-700"><strong>Admin User ID:</strong> {{user_id}}</p>
-                    <p class="text-slate-700"><strong>Admin User Email:</strong> {{email}}</p>
-                    <p class="text-slate-700"><strong>Admin User First Name:</strong> {{first_name}}</p>
-                    <p class="text-slate-700"><strong>Admin User Last Name:</strong> {{last_name}}</p>
-                    <p class="text-slate-700"><strong>Admin User Phone Number:</strong> {{phone_number}}</p>
-                    <p class="text-slate-700"><strong>Admin User Address:</strong> {{address}}</p>
-                    <p class="text-slate-700"><strong>Admin User City:</strong> {{city}}</p>
-                    <p class="text-slate-700"><strong>Admin User State:</strong> {{state}}</p>
-                    <p class="text-slate-700"><strong>Admin User Country:</strong> {{country}}</p>
-                    <p class="text-slate-700"><strong>Admin User Zipcode:</strong> {{zip_code}}</p>
+                <div class="flex-1 p-6">
+                    <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">System Admin Details</h1>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <p class="text-[#0e141b]"><strong>Admin User ID:</strong> {{user_id}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Email:</strong> {{email}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User First Name:</strong> {{first_name}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Last Name:</strong> {{last_name}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Phone Number:</strong> {{phone_number}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Address:</strong> {{address}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User City:</strong> {{city}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User State:</strong> {{state}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Country:</strong> {{country}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Zipcode:</strong> {{zip_code}}</p>
+                    </div>
                 </div>
         </div>
     </div>
