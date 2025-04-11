@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="bg-slate-50" style="font-family: 'Work Sans', 'Noto Sans', sans-serif;">
+    <div class="flex flex-col min-h-screen">
+        <!-- Top Navigation Bar -->
+        <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
+            <div class="flex items-center gap-2">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
+                    <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
+                </svg>
+            
+            <h2 class="text-lg font-bold">SafePay</h2>
+        </div>
+            <div class="flex items-center gap-4">
+                <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
+                <!-- Logout Button -->
+                <li class="list-none">
+                    <form action="/logout/" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
+                            Logout
+                        </button>
+                    </form>
+                 </li>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="flex flex-1">
+            <!-- Sidebar -->
+            <div class="w-64 bg-white border-r border-slate-200 p-4">
+                <h2 class="text-lg font-bold text-slate-900 mb-4">Dashboard</h2>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{% url 'sysadmin_dashboard' %}" class="flex items-center gap-3 p-2 text-[#0c1116] bg-[#e7edf3] rounded-xl">
+                            System Admin Details
+                        </a>
+                    </li>                                        
+                    <li><a href="{% url 'sysadmin_view_transactions' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Monitor All Transactions</a></li>
+                    <li><a href="{% url 'sysadmin_manage_users' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Manage Users</a></li>
+                    <li><a href="{% url 'sysadmin_settings' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Security Settings</a></li>
+                </ul>
+            </div>
+
+                <!-- Admin Details -->
+                <div class="flex-1 p-6">
+                    <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">System Admin Details</h1>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <p class="text-[#0e141b]"><strong>Admin User ID:</strong> {{user_id}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Email:</strong> {{email}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User First Name:</strong> {{first_name}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Last Name:</strong> {{last_name}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Phone Number:</strong> {{phone_number}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Address:</strong> {{address}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User City:</strong> {{city}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User State:</strong> {{state}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Country:</strong> {{country}}</p>
+                        <p class="text-[#0e141b]"><strong>Admin User Zipcode:</strong> {{zip_code}}</p>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.dropdown').addEventListener('click', function() {
+            this.querySelector('.dropdown-content').classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>
