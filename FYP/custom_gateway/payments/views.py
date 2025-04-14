@@ -237,32 +237,6 @@ def systemAdmin_dashboard(request) :
     }
     return render(request, 'SysAdminUI.html', context)
 
-
-def process_payment_delayed(transaction_id, amount, card_number):
-    """
-    Simulated delayed payment processing function.
-    The status is updated after 10 seconds.
-    """
-    print(f"Starting payment delay for transaction {transaction_id}", flush=True)  # Debugging log
-    time.sleep(20)  # Simulate processing delay
-
-    try:
-        # Retrieve the transaction from the database
-        transaction = MerchantTransaction.objects.get(id=transaction_id)
-        print(f"Processing transaction {transaction.transaction_number}", flush=True)  # Debugging log
-
-        # Simulate payment success (replace with real logic)
-        transaction.status = 'success' if float(transaction.amount_sent) > 0 else 'failed'
-        
-
-        # Save the updated status
-        transaction.save()
-        print(f"Transaction {transaction.transaction_number} updated to {transaction.status}")
-
-    except MerchantTransaction.DoesNotExist:
-        print(f"Transaction {transaction_id} does not exist.")
-
-
 def process_payment(request):
     # Placeholder logic; replace with your actual payment processing code.
     return render(request, 'process_payment.html')
@@ -398,7 +372,7 @@ def process_money_transfer(request):
                 amount=amount,
                 token=token,
                 transaction_id=transaction_number,
-                status='success'
+                # status='success'
             )
 
             TokenVault.create_entry(token=token, card_number=card_number)
@@ -459,7 +433,49 @@ def process_money_transfer(request):
 
     return redirect('view_purchase')
 
+# Bank Authorization
+def process_payment_delayed(transaction_id, amount, card_number):
+    """
+    Simulated delayed payment processing function.
+    The status is updated after 10 seconds.
+    """
+    print(f"Starting payment delay for transaction {transaction_id}", flush=True)  # Debugging log
+    time.sleep(20)  # Simulate processing delay
+
+    try:
+        # Retrieve the transaction from the database
+        transaction = MerchantTransaction.objects.get(id=transaction_id)
+        print(f"Processing transaction {transaction.transaction_number}", flush=True)  # Debugging log
         
+        max_retries = 2
+        retry_delay = 5  # seconds between retries
+        attempt = 0
+        success = False
+
+        while attempt < max_retries and not success:
+            print(f"Attempt {attempt + 1} to capture payment...")
+            time.sleep(retry_delay)
+
+            transaction = MerchantTransaction.objects.get(id=transaction_id)
+
+            # Simulate 50% chance of success
+            if random.random() < 0.5:
+                transaction.status = 'success'
+                transaction.save()
+                print("Payment captured successfully.")
+                success = True
+            else:
+                attempt += 1
+                if attempt < max_retries:
+                    print("Payment failed. Retrying...")
+                else:
+                    transaction.status = 'failed'
+                    transaction.save()
+                    print("All payment attempts failed.")
+            print(f"Transaction {transaction.transaction_number} updated to {transaction.status}")
+
+    except MerchantTransaction.DoesNotExist:
+        print(f"Transaction {transaction_id} does not exist.")     
 
 @login_required
 def complaints_view(request):
