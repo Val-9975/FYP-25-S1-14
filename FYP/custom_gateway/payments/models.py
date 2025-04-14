@@ -23,6 +23,9 @@ class Transaction(models.Model):
     def __str__(self):
         return self.transaction_id
 
+FERNET_KEY = Fernet.generate_key() 
+fernet = Fernet(FERNET_KEY)
+
 class TokenVault(models.Model):
     token = models.CharField(max_length=36, unique=True)  # Matches Transaction.token
     encrypted_card_number = models.CharField(max_length=255)  # Encrypted card number

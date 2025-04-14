@@ -24,6 +24,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from .login import authenticate_user
 from .verifyOTP import verify_otp_user
+from django.core.mail import send_mail
 logger = logging.getLogger(__name__)
 
 
@@ -367,13 +368,13 @@ def process_money_transfer(request):
                 status='pending'
             )
 
-            Transaction.objects.create(
-                user=user,
-                amount=amount,
-                token=token,
-                transaction_id=transaction_number,
-                # status='success'
-            )
+            # Transaction.objects.create(
+            #     user=user,
+            #     amount=amount,
+            #     # token=token,
+            #     transaction_id=transaction_number,
+            #     # status='success'
+            # )
 
             TokenVault.create_entry(token=token, card_number=card_number)
 
@@ -463,7 +464,21 @@ def process_payment_delayed(transaction_id, amount, card_number):
                 transaction.status = 'success'
                 transaction.save()
                 print("Payment captured successfully.")
-                success = True
+                success = True            
+                send_mail(
+                    subject='Payment Received from SafePay',
+                    message=(
+                        f"Hi {transaction.merchant.first_name},\n\n"
+                        f"You've received a payment of ${transaction.amount_sent} from "
+                        f"{transaction.customer_first_name} {transaction.customer_last_name}.\n"
+                        f"Transaction ID: {transaction.transaction_number}\n\n"
+                        f"Please fulfill the order as soon as possible.\n\n"
+                        f"– SafePay Gateway"
+                    ),
+                    from_email=None,  # uses DEFAULT_FROM_EMAIL
+                    recipient_list=['testmerchantt1212@gmail.com'],
+                    fail_silently=False
+                )
             else:
                 attempt += 1
                 if attempt < max_retries:
