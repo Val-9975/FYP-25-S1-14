@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helpdesk Personnel Dashboard - Tickets</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="bg-slate-50 font-[Work Sans,Noto Sans,sans-serif]">
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+        <header class="flex items-center justify-between border-b border-[#e7edf3] px-10 py-3">
+            <h2 class="text-lg font-bold text-[#0e141b]">Helpdesk Dashboard</h2>
+            <!-- Logout Button -->
+            <li class="list-none">
+                <form action="/logout/" method="POST">
+                    {% csrf_token %}
+                    <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
+                    <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
+                        Logout
+                    </button>
+                </form>
+            </li>
+        </header>
+        <div class="flex flex-1">
+            <!-- Sidebar -->
+            <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
+                <h2 class="text-lg font-bold text-[#0e141b] mb-4">Dashboard</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'live_chat' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Live Chat</a></li>
+                    <li><a href="#" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">Tickets</a></li>
+                    <li><a href="#" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Analytics</a></li>
+                    <li><a href="#" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Settings</a></li>
+                    <li><a href="{% url 'submit_complaint' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Have Any Complaints?</a></li>
+                    <li><a href="{% url 'view_submitted_complaints' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">View Your Submitted Complaints</a></li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 p-6">
+                <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">Open Tickets</h1>
+
+                <!-- Tickets Grid -->
+                <div class="grid gap-4">
+                    {% for complaint in complaints %}
+                    <a href="{% url 'ticket_details' ticket_id=complaint.id %}" class="block">
+                        <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                            <h3 class="text-lg font-semibold text-[#0e141b]">Ticket #{{ complaint.id }}</h3>
+                            <p class="text-[#4e7397]"><strong>Category:</strong> {{ complaint.category }}</p>
+                            <p class="text-[#4e7397]"><strong>Complaint:</strong> {{ complaint.complaint_text }}</p>
+                            <p class="text-[#4e7397]"><strong>Created At:</strong> {{ complaint.created_at }}</p>
+                            <p class="text-[#4e7397]"><strong>Complained Against:</strong> {{ complaint.complained_against.email }}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+
+
+                <!-- Helpdesk Personnel Details -->
+                <div class="flex-1 bg-white p-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4">Helpdesk Personnel Details</h2>
+                    <p class="text-slate-700"><strong>Helpdesk Personnel ID:</strong> {{ request.user.id }}</p>
+                    <p class="text-slate-700"><strong>Helpdesk Personnel Email:</strong> {{ request.user.email }}</p>
+                    <p class="text-slate-700"><strong>Helpdesk Personnel First Name:</strong> {{ request.user.first_name }}</p>
+                    <p class="text-slate-700"><strong>Helpdesk Personnel Last Name:</strong> {{ request.user.last_name }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

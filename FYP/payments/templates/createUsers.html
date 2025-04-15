@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecurePay - Create Account</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans:wght@400;500;700;900&amp;family=Work+Sans:wght@400;500;700;900"/>
+    <style>
+        body {
+            font-family: "Work Sans", "Noto Sans", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px;
+        }
+        .container h2 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .input-field, .dropdown {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            background: #fff;
+        }
+        .sign-up-button {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            margin-top: 10px;
+        }
+        .sign-up-button:hover {
+            background: #0056b3;
+        }
+        .back-to-login {
+            display: block;
+            margin-top: 10px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        /* Flex container for logo and name */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;  /* Space between logo and text */
+            margin-bottom: 5px; /* Adjust margin as needed */
+        }
+
+        /* Style for logo */
+        .logo-container svg {
+            width: 40px; /* Resize the logo */
+            height: 40px; /* Resize the logo */
+        }
+
+        /* Style for SafePay name */
+        .logo-container h2 {
+            font-size: 40px; /* Adjust font size as needed */
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        function showPopup(message, isSuccess) {
+            alert(message); // Basic popup; can be improved with modal dialogs.
+        }
+    </script>
+</head>
+<body>
+    <!-- Logo and SafePay name beside each other -->
+    <div class="logo-container">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
+            <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
+        </svg>
+        <h2>SafePay</h2>
+    </div>
+
+    <div class="container">
+        <h2>Create Your SafePay Account</h2>
+        
+        <!-- Display success or error messages -->
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <form method="post" onsubmit="return validateForm();">
+            {% csrf_token %}
+            
+            <input type="email" name="email" placeholder="Email" class="input-field" required>
+            <input type="password" name="password" placeholder="Password" class="input-field" required>
+            <input type="text" name="first_name" placeholder="First Name" class="input-field" required>
+            <input type="text" name="last_name" placeholder="Last Name" class="input-field" required>
+            <input type="text" name="phone_number" placeholder="Phone Number" class="input-field" required>
+            <input type="text" name="address" placeholder="Address" class="input-field" required>
+            <input type="text" name="city" placeholder="City" class="input-field" required>
+            <input type="text" name="state" placeholder="State" class="input-field" required>
+            <input type="text" name="country" placeholder="Country" class="input-field" required>
+            <input type="text" name="zip_code" placeholder="Zip Code" class="input-field" required>
+
+            <select name="role" class="dropdown" required>
+                <option value="" disabled selected>Select Role</option>
+                <option value="1">Customer</option>
+                <option value="2">Merchant</option>
+            </select>
+
+            <button type="submit" class="sign-up-button">Create Account</button>
+        </form>
+        <a href="{% url 'login' %}" class="back-to-login">Back to Login</a>
+    </div>
+</body>
+</html>
