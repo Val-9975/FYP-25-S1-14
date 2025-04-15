@@ -13,6 +13,7 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     card_number = models.CharField(max_length=16)
     transaction_id = models.CharField(max_length=12, unique=True)
+    token = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(
         max_length=10,
         choices=[('success', 'Success'), ('failed', 'Failed')]
@@ -21,6 +22,9 @@ class Transaction(models.Model):
 
     def __str__(self):
         return self.transaction_id
+
+FERNET_KEY = Fernet.generate_key() 
+fernet = Fernet(FERNET_KEY)
 
 class TokenVault(models.Model):
     token = models.CharField(max_length=36, unique=True)  # Matches Transaction.token
@@ -107,6 +111,7 @@ class MerchantTransaction(models.Model):
     country = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    # token = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'merchant_transactions'
