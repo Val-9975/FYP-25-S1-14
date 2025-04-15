@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SafePay - Contact Support</title>
+    <!-- Preconnect & Font -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+      body {
+        font-family: "Work Sans", "Noto Sans", sans-serif;
+      }
+      .avatar {
+        background: url('https://via.placeholder.com/40/aaa/fff?text=👤') no-repeat center/cover;
+      }
+      
+      /* FAQ Animation Styles */
+      .faq-item {
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      }
+      .faq-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .faq-question {
+        position: relative;
+        padding: 16px 20px;
+        width: 100%;
+        text-align: left;
+        background: white;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+      .faq-question:hover {
+        background: #f8fafc;
+      }
+      .faq-question::after {
+        content: '';
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        transition: transform 0.3s ease;
+      }
+      .faq-item.open .faq-question::after {
+        transform: translateY(-50%) rotate(180deg);
+      }
+      .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #f8fafc;
+      }
+      .faq-item.open .faq-answer {
+        max-height: 300px;
+      }
+      .faq-content {
+        padding: 0 20px;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
+      }
+      .faq-item.open .faq-content {
+        opacity: 1;
+        transform: translateY(0);
+        padding: 0 20px 20px;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-[#0e141b] flex flex-col">
+    <!-- Header -->
+    <header class="w-full flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+      <div class="flex items-center gap-2">
+        <svg class="w-6 h-6" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g clip-path="url(#clip0)">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor"/>
+          </g>
+          <defs>
+            <clipPath id="clip0">
+              <rect width="48" height="48" fill="white" />
+            </clipPath>
+          </defs>
+        </svg>
+        <span class="text-lg font-bold">SafePay</span>
+      </div>
+      <div class="avatar w-10 h-10 rounded-full bg-slate-300 overflow-hidden" aria-label="User Avatar"></div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col items-center justify-center p-6">
+      <div class="w-full max-w-3xl bg-white rounded-xl shadow-sm p-8">
+        <h1 class="text-2xl font-bold mb-4">Contact Support</h1>
+        <h2 class="text-lg font-medium text-slate-600 mb-8">How can we help you today?</h2>
+        
+        <!-- Contact Options -->
+        <div class="flex flex-col gap-4 mb-10">
+          <a href="#" class="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+            <div>
+              <p class="font-medium">Start a live chat</p>
+              <p class="text-sm text-slate-500">Typically replies in a few minutes</p>
+            </div>
+            <svg class="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
+            </svg>
+          </a>
+          
+          <a href="mailto:support@securepay.com" class="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+            <div>
+              <p class="font-medium">Email</p>
+              <p class="text-sm text-slate-500">support@safepay.com</p>
+            </div>
+            <svg class="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
+            </svg>
+          </a>
+          
+          <div class="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+            <div>
+              <p class="font-medium">Call</p>
+              <p class="text-sm text-slate-500">(415) 555-1234</p>
+              <p class="text-sm text-slate-500">Mon-Fri 7am-6pm PT</p>
+            </div>
+            <svg class="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-6 flex justify-center">
+          <a href="{% url 'customer_dashboard' %}" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition">
+            Back to Dashboard
+          </a>
+        </div>
+
+        <!-- FAQs -->
+        <div class="mt-12">
+          <h3 class="text-xl font-semibold mb-6 text-slate-800">Frequently Asked Questions</h3>
+          <div class="flex flex-col gap-3">
+            <!-- FAQ 1 -->
+            <div class="faq-item bg-white">
+              <button class="faq-question">
+                <span class="font-medium text-slate-800"> What Payment Methods Do We Offer?</span>
+              </button>
+              <div class="faq-answer">
+                <div class="faq-content">
+                  <p class="text-sm text-slate-600 leading-relaxed">
+                    <span class="font-medium">Credit/Debit Cards </span> – Visa
+                    <br>
+                    <span class="font-medium">E-Wallets </span> – Safepay Wallet
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- FAQ 2 -->
+            <div class="faq-item bg-white">
+              <button class="faq-question">
+                <span class="font-medium text-slate-800">How to Top Up Your Wallet? </span>
+              </button>
+              <div class="faq-answer">
+                <div class="faq-content">
+                  <p class="text-sm text-slate-600 leading-relaxed">
+                    blablabla
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- FAQ 3 -->
+            <div class="faq-item bg-white">
+              <button class="faq-question">
+                <span class="font-medium text-slate-800">Is my payment information secure?</span>
+              </button>
+              <div class="faq-answer">
+                <div class="faq-content">
+                  <p class="text-sm text-slate-600 leading-relaxed">
+                    Absolutely. We use <span class="font-medium">256-bit SSL encryption</span> and comply with PCI DSS standards. 
+                    Your full card numbers are never stored on our servers. 
+                    You can also enable two-factor authentication for added security.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 pt-6 border-t border-slate-200 text-center">
+          <a href="#" class="text-sm text-blue-600 hover:underline font-medium transition">Gateway Privacy Policy</a>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+          const button = item.querySelector('.faq-question');
+          
+          button.addEventListener('click', () => {
+            // Close other open FAQs
+            faqItems.forEach(otherItem => {
+              if (otherItem !== item && otherItem.classList.contains('open')) {
+                otherItem.classList.remove('open');
+              }
+            });
+            
+            // Toggle current FAQ
+            item.classList.toggle('open');
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

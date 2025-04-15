@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payments - SafePay</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+  <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Work+Sans:wght@400;500;700;900" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <style>
+    mark {
+      background-color: #fef08a;
+      color: inherit;
+    }
+  </style>
+</head>
+<body class="bg-slate-50" style="font-family: 'Work Sans', 'Noto Sans', sans-serif;">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white border-r border-slate-200 p-4">
+      <h2 class="text-lg font-bold text-slate-900 mb-4">Payments</h2>
+      <ul class="space-y-2">
+        <li>
+          <div class="flex items-center gap-3 p-2 text-[#0c1116] bg-[#e7edf3] rounded-xl">
+            Payments
+          </div>
+        </li>
+        
+        <li>
+          <a href="{% url 'customer_dashboard' %}" onclick="localStorage.clear();" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">
+            Back To Dashboard
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-6">
+      <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">Transaction History</h1>
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <!-- Search bar -->
+        <div class="mb-4">
+          <input
+            placeholder="Search transactions"
+            class="form-input w-full rounded-xl bg-slate-100 px-4 py-2 text-sm text-[#0e141b] focus:outline-none focus:ring-2 focus:ring-slate-300"
+          />
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="flex gap-3 flex-wrap mb-6">
+          <!-- Payment Method Filter -->
+          <div class="flex items-center gap-2">
+            <label for="payment-method" class="text-sm">Payment Method</label>
+            <select id="payment-method" class="bg-[#e7edf3] text-[#0d141b] text-sm font-medium rounded-xl h-8 px-3">
+              <option value="">All</option>
+              <option value="credit card">Credit Card</option>
+              <option value="visa">Visa</option>
+              <option value="safepay wallet">SafePay Wallet</option>
+            </select>
+          </div>
+          <!-- Status Filter -->
+          <div class="flex items-center gap-2">
+            <label for="status" class="text-sm">Status</label>
+            <select id="status" class="bg-[#e7edf3] text-[#0d141b] text-sm font-medium rounded-xl h-8 px-3">
+              <option value="">All</option>
+              <option value="success">Success</option>
+              <option value="failed">Failed</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="mb-6">
+          <input type="date" id="filter-start-date" class="bg-[#e7edf3] text-[#0d141b] text-sm font-medium rounded-xl h-8 px-3" />
+          <span class="text-[#0d141b] text-sm mx-1">to</span>
+          <input type="date" id="filter-end-date" class="bg-[#e7edf3] text-[#0d141b] text-sm font-medium rounded-xl h-8 px-3" />
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="overflow-x-auto rounded-xl border border-[#cfdbe7]">
+          <table class="min-w-full border-collapse text-sm text-left text-[#0e141b]" id="transactions-table">
+            <thead>
+              <tr class="bg-slate-100">
+                <th class="border px-4 py-2">Transaction ID</th>
+                <th class="border px-4 py-2">Amount</th>
+                <th class="border px-4 py-2">Payment Method</th>
+                <th class="border px-4 py-2">Date</th>
+                <th class="border px-4 py-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for transaction in transactions %}
+              <tr>
+                <td class="border px-4 py-2">{{ transaction.transaction_number }}</td>
+                <td class="border px-4 py-2">{{ transaction.amount_sent }}</td>
+                <td class="border px-4 py-2">{{ transaction.payment_method }}</td>
+                <td class="border px-4 py-2">{{ transaction.created_at|date:"M d, Y H:i" }}</td>
+                <td class="border px-4 py-2">
+                  {% if transaction.status == 'success' %}
+                    <span class="text-green-600 font-semibold">Success</span>
+                  {% elif transaction.status == 'failed' %}
+                    <span class="text-red-600 font-semibold">Failed</span>
+                  {% else %}
+                    <span class="text-orange-500 font-semibold">Pending</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr class="no-results">
+                <td colspan="5" class="text-center py-4 text-slate-500">No transactions found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const searchInput = document.querySelector('input[placeholder="Search transactions"]');
+      const tableRows = document.querySelectorAll('table tbody tr');
+      const paymentMethodSelect = document.getElementById('payment-method');
+      const statusSelect = document.getElementById('status');
+      const startDateInput = document.getElementById('filter-start-date');
+      const endDateInput = document.getElementById('filter-end-date');
+
+      const filterTransactions = () => {
+        const searchQuery = searchInput.value.trim().toLowerCase();
+        const paymentMethodValue = paymentMethodSelect.value.toLowerCase();
+        const statusValue = statusSelect.value.toLowerCase();
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+        
+        let visibleCount = 0;
+
+        tableRows.forEach(row => {
+          if (!row.querySelector('td')) return; // Skip empty rows
+
+          const transactionId = row.cells[0].textContent.trim().toLowerCase();
+          const amount = row.cells[1].textContent.trim().toLowerCase();
+          const paymentMethod = row.cells[2].textContent.trim().toLowerCase();
+          const date = row.cells[3].textContent.trim();
+          const status = row.cells[4].textContent.trim().toLowerCase();
+          
+          // Search filter
+          const searchMatch = searchQuery === '' || 
+            transactionId.includes(searchQuery) || 
+            amount.includes(searchQuery) || 
+            paymentMethod.includes(searchQuery) || 
+            date.includes(searchQuery) || 
+            status.includes(searchQuery);
+          
+          // Payment method filter
+          const paymentMethodMatch = paymentMethodValue === '' || 
+            paymentMethod.includes(paymentMethodValue);
+          
+          // Status filter
+          const statusMatch = statusValue === '' || 
+            status.includes(statusValue);
+          
+          // Date filter
+          let dateMatch = true;
+          if (startDate || endDate) {
+            const rowDate = new Date(date);
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
+            
+            if (start && rowDate < start) dateMatch = false;
+            if (end && rowDate > end) dateMatch = false;
+          }
+
+          if (searchMatch && paymentMethodMatch && statusMatch && dateMatch) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        // Show "No results" message if no rows are visible
+        const tbody = document.querySelector('table tbody');
+        const existingNoResult = tbody.querySelector('.no-result');
+        
+        if (visibleCount === 0 && !existingNoResult) {
+          const noResultRow = document.createElement('tr');
+          noResultRow.innerHTML = `<td colspan="5" class="text-center text-slate-500 py-4">No transactions found.</td>`;
+          noResultRow.classList.add('no-result');
+          tbody.appendChild(noResultRow);
+        } else if (visibleCount > 0 && existingNoResult) {
+          existingNoResult.remove();
+        }
+      };
+
+      // Add event listeners
+      searchInput.addEventListener('input', filterTransactions);
+      paymentMethodSelect.addEventListener('change', filterTransactions);
+      statusSelect.addEventListener('change', filterTransactions);
+      startDateInput.addEventListener('change', filterTransactions);
+      endDateInput.addEventListener('change', filterTransactions);
+    });
+  </script>
+</body>
+</html>
