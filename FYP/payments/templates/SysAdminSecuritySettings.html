@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        // JavaScript to show popup message
+        document.addEventListener('DOMContentLoaded', function () {
+            const messages = document.querySelectorAll('.message-popup');
+            messages.forEach(message => {
+                // Show the popup
+                message.classList.remove('hidden');
+                // Automatically hide the popup after 3 seconds
+                setTimeout(() => {
+                    message.classList.add('hidden');
+                }, 3000);
+            });
+        });
+    </script>
+</head>
+<body class="bg-slate-50" style="font-family: 'Work Sans', 'Noto Sans', sans-serif;">
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+        <!-- Popup Message -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message-popup fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-lg hidden">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+         <!-- Top Navigation Bar -->
+        <header class="flex items-center justify-between border-b border-[#e7edf3] px-10 py-3">
+        <div class="flex items-center gap-2">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
+                <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
+            </svg>
+            <h2 class="text-lg font-bold">SafePay</h2>
+        </div>
+        <div class="flex items-center gap-4">
+                <input type="text" class="rounded-xl border border-gray-300 bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
+                        <!-- Logout Button -->
+                        <li class="list-none">
+                            <form action="/logout/" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
+                                    Logout
+                                </button>
+                            </form>
+                        </li>
+            </div>
+        </header>
+
+        <div class="flex flex-1">
+            <!-- Sidebar -->
+            <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
+                <h2 class="text-lg font-bold text-[#0e141b] mb-4">Dashboard</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'sysadmin_dashboard' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">System Admin Details</a></li>
+                    <li><a href="{% url 'sysadmin_view_transactions' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Monitor All Transactions</a></li>
+                    <li><a href="{% url 'sysadmin_manage_users' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Manage Users</a></li>
+                    <li>
+                        <a href="{% url 'sysadmin_settings' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b]">
+                          Security Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 p-6">
+                <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">Update Security Protocols</h1>
+        
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <form method="post" action="{% url 'update_security_protocols' %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="protocol_name" class="block text-sm font-medium text-gray-700">Protocol Name</label>
+                            <input type="text" name="protocol_name" id="protocol_name" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="protocol_version" class="block text-sm font-medium text-gray-700">Version</label>
+                            <input type="text" name="protocol_version" id="protocol_version" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="protocol_description" class="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea name="protocol_description" id="protocol_description" rows="4" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2" required></textarea>
+                        </div>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Update Protocol</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

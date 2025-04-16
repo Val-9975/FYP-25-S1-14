@@ -80,7 +80,7 @@
         <form method="post">
             {% csrf_token %}
             <input type="text" name="otp" class="input-field" placeholder="Enter OTP" maxlength="6" required>
-            <button type="submit" class="verify-button">Verify</button>
+            <button type="submit" onclick="localStorage.clear();" class="verify-button">Verify</button>
         </form>
     </div>
 
