@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'custom_gateway.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'payment_gateway',           # Replace with your MySQL database name
+        'NAME': 'gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
         'PASSWORD': '151515',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
