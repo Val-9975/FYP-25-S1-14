@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helpdesk Settings</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="bg-slate-50 font-[Work Sans,Noto Sans,sans-serif]">
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+        <header class="flex items-center justify-between border-b border-[#e7edf3] px-10 py-3">
+            <h2 class="text-lg font-bold text-[#0e141b]">Helpdesk Dashboard</h2>
+            <li class="list-none">
+                <form action="/logout/" method="POST">
+                    {% csrf_token %}
+                    <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
+                    <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
+                        Logout
+                    </button>
+                </form>
+            </li>
+        </header>
+        <div class="flex flex-1">
+            <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
+                <h2 class="text-lg font-bold text-[#0e141b] mb-4">Dashboard</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'helpdesk_dashboard' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Live Chat</a></li>
+                    <li><a href="{% url 'view_tickets' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Tickets</a></li>
+                    <li><a href="#" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Analytics</a></li>
+                    <li><a href="{% url 'helpdesk_settings' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">Settings</a></li>
+                </ul>
+            </div>
+            <div class="flex-1 p-6">
+                <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">Settings</h1>
+                
+                <!-- Settings Tabs -->
+                <div class="mb-6 border-b border-[#e7edf3]">
+                    <ul class="flex flex-wrap -mb-px">
+                        <li class="mr-2">
+                            <a href="#" class="inline-block p-4 border-b-2 border-[#1980e6] text-[#1980e6] font-medium active">Profile</a>
+                        </li>
+                        <li class="mr-2">
+                            <a href="#" class="inline-block p-4 border-b-2 border-transparent hover:text-[#4e7397] hover:border-[#4e7397] font-medium">Notification Preferences</a>
+                        </li>
+                        <li class="mr-2">
+                            <a href="#" class="inline-block p-4 border-b-2 border-transparent hover:text-[#4e7397] hover:border-[#4e7397] font-medium">Security</a>
+                        </li>
+                        <li>
+                            <a href="#" class="inline-block p-4 border-b-2 border-transparent hover:text-[#4e7397] hover:border-[#4e7397] font-medium">Helpdesk Configuration</a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Profile Settings -->
+                <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+                    <h2 class="text-xl font-bold text-[#0e141b] mb-6">Profile Information</h2>
+                    <form>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">First Name</label>
+                                <input type="text" value="{{first_name}}" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">Last Name</label>
+                                <input type="text" value="{{last_name}}" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">Email</label>
+                                <input type="email" value="{{email}}" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">Phone Number</label>
+                                <input type="tel" value="{{phone_number}}" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold text-[#0e141b] mb-4">Address Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">Address</label>
+                                <input type="text" value="{{address}}" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">City</label>
+                                <input type="text" value="{{city}}" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">State/Province</label>
+                                <input type="text" value="{{state}}" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">Country</label>
+                                <select class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                                    <option>{{country}}</option>
+                                    <!-- Other country options would go here -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">Zip/Postal Code</label>
+                                <input type="text" value="{{zip_code}}" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button type="button" class="px-6 py-2 border border-[#d0dbe7] text-[#0e141b] rounded-xl mr-3 hover:bg-slate-100">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-[#1980e6] text-white rounded-xl hover:bg-blue-700">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Password Change -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-xl font-bold text-[#0e141b] mb-6">Change Password</h2>
+                    <form>
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">Current Password</label>
+                                <input type="password" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">New Password</label>
+                                <input type="password" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                                <p class="text-xs text-[#4e7397] mt-1">Must be at least 8 characters long</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[#4e7397] mb-1">Confirm New Password</label>
+                                <input type="password" class="w-full p-3 border border-[#d0dbe7] rounded-xl">
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-6 py-2 bg-[#1980e6] text-white rounded-xl hover:bg-blue-700">Update Password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
