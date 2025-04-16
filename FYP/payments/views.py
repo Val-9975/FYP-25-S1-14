@@ -330,28 +330,41 @@ def process_money_transfer(request):
         amount_str = request.POST.get('amount')
         payment_method = request.POST.get('payment_method')
         card_number = request.POST.get('card_number', '')
-        
+        expiry_date = request.POST.get('expiry_date', '')
+
+        # Validate card number using Luhn algorithm
         if not is_valid_card(card_number):
             messages.error(request, "Invalid card number.")
             return redirect('customer_dashboard')
-        
-        # if not is_expired(expiry_date):
-        #     messages.error(request, "Invalid card number.")
-        #     return redirect('customer_dashboard')
 
+        # Check if expiry date format is MM/YY
+        import re
+        if not re.match(r'^\d{2}/\d{2}$', expiry_date):
+            messages.error(request, "Invalid expiry date format.")
+            return redirect('customer_dashboard')
+
+        #Check if card is expired
+        if is_expired(expiry_date):
+            messages.error(request, "Card is expired.")
+            return redirect('customer_dashboard')
+
+        #Validate and parse amount
         try:
             amount = Decimal(amount_str)
+            if amount <= 0:
+                raise ValueError
         except Exception:
             messages.error(request, "Invalid amount.")
             return redirect('customer_dashboard')
 
+        #Get merchant by email
         merchant = get_object_or_404(LegacyUser, email=merchant_email, role_id=2)
         token = f"tok_{uuid.uuid4().hex}"
         transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
         user = request.user
 
+        #Create the transaction within an atomic block
         with db_transaction.atomic():
-            # Create transaction entries
             transaction = MerchantTransaction.objects.create(
                 merchant=merchant,
                 customer_email=user.email,
@@ -368,71 +381,15 @@ def process_money_transfer(request):
                 status='pending'
             )
 
-            # Transaction.objects.create(
-            #     user=user,
-            #     amount=amount,
-            #     # token=token,
-            #     transaction_id=transaction_number,
-            #     # status='success'
-            # )
-
             TokenVault.create_entry(token=token, card_number=card_number)
 
-        # Start the delayed payment status update thread
+        #Start the simulated payment processing in a background thread
         print(f"DEBUG: Starting thread for transaction {transaction.id}", flush=True)
         thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
         thread.start()
 
         return redirect('view_purchase')
 
-
-    if payment_method.upper() == "SAFEPAY WALLET":
-        if user.wallet_balance < amount:
-            # Create transaction with failed status
-            transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
-            MerchantTransaction.objects.create(
-                merchant=merchant,
-                customer_email=user.email,
-                customer_first_name=user.first_name,
-                customer_last_name=user.last_name,
-                transaction_number=transaction_number,
-                amount_sent=amount,
-                payment_method=payment_method,
-                phone_number=user.phone_number,
-                address=user.address,
-                city=user.city,
-                state=user.state,
-                country=user.country,
-                status='failed'
-            )
-            messages.error(request, "Insufficient wallet balance. Transaction failed.")
-            return redirect('view_purchase')
-        else:
-            user.wallet_balance -= amount
-            user.save(update_fields=['wallet_balance'])
-
-    # Move this outside of the SAFEPAY WALLET check so it's always executed
-    transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
-    transaction = MerchantTransaction.objects.create(
-        merchant=merchant,
-        customer_email=user.email,
-        customer_first_name=user.first_name,
-        customer_last_name=user.last_name,
-        transaction_number=transaction_number,
-        amount_sent=amount,
-        payment_method=payment_method,
-        phone_number=user.phone_number,
-        address=user.address,
-        city=user.city,
-        state=user.state,
-        country=user.country,
-        status='pending'
-    )
-
-    thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
-    thread.start()
-
-    return redirect('view_purchase')
 
 # Bank Authorization
 def process_payment_delayed(transaction_id, amount, card_number):

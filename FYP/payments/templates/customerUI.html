@@ -208,6 +208,15 @@
                   </span>
                   <input name="card_number" type="text" placeholder="16 digits" oninput="storeInLocalStorage()" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base text-[#0e141b] placeholder:text-[#4e7397] focus:outline-0 focus:ring-0 focus:border-[#d0dbe7]" />
                 </label>
+
+                <!-- Expiry Date Field (MM/YY format) -->
+                <label id="expiryDateLabel" class="flex flex-col min-w-40 flex-1 hidden">
+                  <span class="mb-1 text-[#0e141b] text-sm font-semibold">
+                    Expiry Date <span class="text-red-500">*</span>
+                  </span>
+                  <input name="expiry_date" type="text" placeholder="MM/YY" pattern="\d{2}/\d{2}" oninput="storeInLocalStorage()" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base text-[#0e141b] placeholder:text-[#4e7397] focus:outline-0 focus:ring-0 focus:border-[#d0dbe7]" />
+                </label>
+
                 <!-- CVV Field (Shown for VISA/CREDIT CARD) -->
                 <label id="cvvLabel" class="flex flex-col min-w-40 flex-1 hidden">
                   <span class="mb-1 text-[#0e141b] text-sm font-semibold">
@@ -235,18 +244,22 @@
                   const cardNumberLabel = document.getElementById('cardNumberLabel');
                   const cvvLabel = document.getElementById('cvvLabel');
                   const walletSection = document.getElementById('walletSection');
+                  const expiryDateLabel = document.getElementById('expiryDateLabel');
                   function togglePaymentFields() {
                     if (paymentMethod.value === "SAFEPAY WALLET") {
                       cardNumberLabel.classList.add('hidden');
                       cvvLabel.classList.add('hidden');
+                      expiryDateLabel.classList.add('hidden');
                       walletSection.classList.remove('hidden');
                     } else if (paymentMethod.value !== "") {
                       cardNumberLabel.classList.remove('hidden');
                       cvvLabel.classList.remove('hidden');
+                      expiryDateLabel.classList.remove('hidden');
                       walletSection.classList.add('hidden');
                     } else {
                       cardNumberLabel.classList.add('hidden');
                       cvvLabel.classList.add('hidden');
+                      expiryDateLabel.classList.add('hidden');
                       walletSection.classList.add('hidden');
                     }
                   }
@@ -307,7 +320,39 @@
           const paymentMethod = form.querySelector('select[name="payment_method"]');
           const cardNumberInput = form.querySelector('input[name="card_number"]');
           const cvvInput = form.querySelector('input[name="cvv"]');
-        
+          const expiryDateInput = form.querySelector('input[name="expiry_date"]');
+
+          if (expiryDateInput && !/^\d{2}\/\d{2}$/.test(expiryDateInput.value)) {
+            alert("Expiry date must be in MM/YY format.");
+            event.preventDefault();
+            return false;
+          }
+
+          const [expMonth, expYear] = expiryDateInput.value.split('/');
+
+          const month = parseInt(expMonth);
+          const year = parseInt(expYear);
+
+          if (month < 1 || month > 12) {
+            alert("Invalid expiry month.");
+            event.preventDefault();
+            return false;
+          }
+
+        const now = new Date();
+        const expiryDate = new Date(2000 + year, month - 1, 1);  // 20YY-MM
+
+        expiryDate.setMonth(expiryDate.getMonth() + 1);
+        expiryDate.setDate(0);
+        expiryDate.setHours(23, 59, 59);
+
+        if (expiryDate < now) {
+          alert("Card is expired.");
+          event.preventDefault();
+          return false;
+        }
+
+      
           // Basic required fields check
           if (
             !merchantEmail.value.trim() ||
