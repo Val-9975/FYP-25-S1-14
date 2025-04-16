@@ -572,6 +572,10 @@ def live_chat(request):
     return render(request, 'HelpDeskUI.html')
 
 @login_required
+def helpdesk_settings(request):
+    return render(request, 'HelpdeskSettings.html')
+
+@login_required
 def suspend_customer(request):
     if request.method == 'POST':
         transaction_id = request.POST.get('transaction_id')
