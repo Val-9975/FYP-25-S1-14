@@ -231,12 +231,12 @@
           <div class="relative mt-4">
               <button onclick="toggleDropdown()" class="rounded-xl h-10 px-4 bg-[#1980e6] text-white text-sm font-bold">Filter</button>
               <div id="filterDropdown" class="absolute bg-white shadow-md rounded-xl mt-2 p-4 hidden">
-                <select id="statusFilter" class="border p-3 rounded-md w-80" onchange="applyFilter()">
-                  <option value="">Filter by Status</option>
-                  <option value="success" {% if request.GET.status == 'success' %}selected{% endif %}>Success</option>
-                  <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
-                  <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Failed</option>
-                </select>
+                  <select id="statusFilter" class="border p-3 rounded-md w-80" onchange="applyFilter()">
+                      <option value="">Filter by Status</option>
+                      <option value="success" {% if request.GET.status == 'success' %}selected{% endif %}>Success</option>
+                      <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                      <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Failed</option>
+                  </select>
                   <button onclick="applyFilter()" class="mt-2 w-full bg-[#1980e6] text-white p-2 rounded-md">Apply</button>
               </div>
           </div>
@@ -311,11 +311,10 @@
           </div>
         </main>
         <div class="flex px-4 py-3 justify-center">
-          <a href="{% url 'contact_support' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]">
-              <span class="truncate">Contact Support</span>
+          <a href="{% url 'contact_support' %}?dashboard=merchant" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]">
+            <span class="truncate">Contact Support</span>
           </a>
-      </div>
-      
+        </div>
     </div>
 
 
