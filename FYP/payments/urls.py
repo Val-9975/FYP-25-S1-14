@@ -12,6 +12,9 @@ urlpatterns = [
     path('dashboard/customer/contact/', views.contact_support, name='contact_support'),
     path('dashboard/customer/top-up-wallet/', views.top_up_wallet, name='top_up_wallet'),
     path('payments/transfer/', views.process_money_transfer, name='process_money_transfer'),
+    path('dashboard/get-saved-payment-methods/', views.get_saved_payment_methods, name='get_saved_payment_methods'),
+    path('payment-methods/<int:card_id>/', views.get_saved_card_detail, name='get_saved_card_detail'),
+
     
     # Add merchant dashboard URL:
     path('dashboard/merchant/', views.merchant_dashboard, name='merchant_dashboard'),

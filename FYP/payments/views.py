@@ -25,6 +25,8 @@ from django.contrib.auth.models import User
 from .login import authenticate_user
 from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
+from .models import SavedPaymentMethod
+
 logger = logging.getLogger(__name__)
 
 
@@ -331,6 +333,7 @@ def process_money_transfer(request):
         payment_method = request.POST.get('payment_method')
         card_number = request.POST.get('card_number', '')
         expiry_date = request.POST.get('expiry_date', '')
+        save_payment_method = request.POST.get('save_payment_method') == 'on'
 
         # Validate card number using Luhn algorithm
         if not is_valid_card(card_number):
@@ -380,8 +383,26 @@ def process_money_transfer(request):
                 country=user.country,
                 status='pending'
             )
-
+            # Create token vault entry
+            token = f"tok_{uuid.uuid4().hex}"
             TokenVault.create_entry(token=token, card_number=card_number)
+            
+                      # Save payment method if requested
+            if save_payment_method and payment_method in ['VISA', 'CREDIT_CARD']:
+                try:
+                    expiry_month, expiry_year = map(int, expiry_date.split('/'))
+                    expiry_year += 2000  # Convert YY to YYYY
+                    
+                    SavedPaymentMethod.objects.create(
+                        user=request.user,
+                        payment_type=payment_method,
+                        last_four_digits=card_number[-4:],
+                        expiry_month=expiry_month,
+                        expiry_year=expiry_year,
+                        token=token
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to save payment method: {str(e)}")
 
         #Start the simulated payment processing in a background thread
         print(f"DEBUG: Starting thread for transaction {transaction.id}", flush=True)
@@ -389,6 +410,43 @@ def process_money_transfer(request):
         thread.start()
 
         return redirect('view_purchase')
+
+# views.py - Add this new view
+@login_required
+def get_saved_payment_methods(request):
+    methods = SavedPaymentMethod.objects.filter(user=request.user).values(
+        'id',
+        'payment_type',
+        'last_four_digits',
+        'expiry_month',
+        'expiry_year'
+    )
+    
+    formatted_methods = []
+    for method in methods:
+        formatted_methods.append({
+            'id': method['id'],
+            'display': f"{method['payment_type']} ending in {method['last_four_digits']} (Exp: {method['expiry_month']:02d}/{method['expiry_year'] % 100:02d})"
+        })
+    
+    return JsonResponse({'methods': formatted_methods})
+
+@login_required
+def get_saved_card_detail(request, card_id):
+    try:
+        saved_card = SavedPaymentMethod.objects.get(id=card_id, user=request.user)
+        token = saved_card.token
+        vault_entry = TokenVault.objects.get(token=token)
+        card_number = vault_entry.get_card_number()
+
+        return JsonResponse({
+            'masked_number': f"************{card_number[-4:]}",
+            'formatted_expiry': saved_card.formatted_expiry
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
 
 
 # Bank Authorization
