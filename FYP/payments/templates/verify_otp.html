@@ -95,5 +95,11 @@
 
 </div>
 
+{% if otp_expired == True %}
+<script>
+        alert("OTP Expired, Please login again");
+        window.location.href = "{% url 'login' %}";
+</script>
+{% endif %}
 </body>
 </html>
