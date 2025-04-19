@@ -3,7 +3,7 @@ import threading
 import time
 import logging
 import random
-import datetime
+from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -25,6 +25,8 @@ from django.contrib.auth.models import User
 from .login import authenticate_user
 from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 logger = logging.getLogger(__name__)
 
 
