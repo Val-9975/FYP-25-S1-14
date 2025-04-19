@@ -22,8 +22,9 @@ def authenticate_user(request):
 
         request.session['otp_created_at'] = datetime.now().timestamp()
 
+
         # Print OTP in terminal for debugging
-        #print(f"[DEBUG] OTP for {email} is: {otp}")
+        print(f"[DEBUG] OTP for {email} is: {otp}")
 
         # Render HTML email from template
         html_message = render_to_string('otp_email.html', {'otp': otp})
