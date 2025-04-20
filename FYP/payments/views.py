@@ -105,22 +105,21 @@ def handle_login(request):
 
 def verify_otp(request):
     if request.method == "POST":
-        redirect_page = verify_otp_user(request)  # Your existing OTP verification
-
+        redirect_page = verify_otp_user(request)
+        
         if redirect_page == "expired":
             return render(request, 'verify_otp.html', {'otp_expired': True})
-        
-        elif redirect_page: 
-            # Get the authenticated user
+        elif redirect_page:
+            # IMPORTANT: Re-authenticate here to get the user object
             email = request.session.get('email')
             password = request.session.get('password')
             user = authenticate(request, username=email, password=password)
             
-            if user is not None:
-                auth_login(request, user)  # This triggers the login signals
+            if user:
+                auth_login(request, user)  # This triggers signals
                 
-                # Additional agent availability handling
-                if hasattr(user, 'role_id') and user.role_id == 4:  # Check if agent
+                # Direct DB update for agents
+                if hasattr(user, 'role_id') and user.role_id == 4:
                     HelpdeskAgent.objects.update_or_create(
                         user=user,
                         defaults={
@@ -131,10 +130,7 @@ def verify_otp(request):
                     )
             
             return redirect(redirect_page)
-        else:
-            messages.error(request, "Invalid OTP or your account is suspended.")
-            return render(request, 'verify_otp.html')
-
+    
     return render(request, 'verify_otp.html')
 
 
