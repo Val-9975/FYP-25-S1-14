@@ -1,10 +1,12 @@
 from django.db import models
-from django.conf import settings
+#from django.conf import settings
 from cryptography.fernet import Fernet
 from django.utils.functional import cached_property
 from django.contrib.auth.models import User
 import uuid
 from django.utils import timezone
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 
 class Transaction(models.Model):
     user = models.ForeignKey(
@@ -86,6 +88,14 @@ class LegacyUser(models.Model):
     def is_anonymous(self):
         # Authenticated users are not anonymous.
         return False
+
+    @property
+    def id(self):
+        return self.user_id
+        
+    # This makes Django use user_id as the pk for lookups
+    def get_username(self):
+        return str(self.user_id)
 
 class MerchantTransaction(models.Model):
     id = models.AutoField(primary_key=True)

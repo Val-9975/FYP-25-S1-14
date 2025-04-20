@@ -21,7 +21,7 @@ from django.http import JsonResponse
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
 from .login import authenticate_user
 from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
@@ -30,10 +30,11 @@ from django.utils.html import strip_tags
 logger = logging.getLogger(__name__)
 
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from .models import Message
 from django.db.models import Q
+from django.http import Http404
+
 
 
 def create_user(request):
@@ -487,7 +488,7 @@ def initiate_chat(request):
     if available_agent:
         # Mark agent as busy
         available_agent.is_available = False
-        available_agent.current_chat = f"chat_{request.user.id}_{available_agent.user.id}"
+        available_agent.current_chat = f"chat_{request.user.user_id}_{available_agent.user.user_id}"
         available_agent.save()
         
         # Redirect to chat room with agent's user_id as room_name
@@ -603,42 +604,53 @@ def live_chat(request):
 
 @login_required
 def chat_room(request, room_name):
-    search_query = request.GET.get('search', '') 
-    users = User.objects.exclude(id=request.user.id) 
+    User = get_user_model()
+    search_query = request.GET.get('search', '')
+    
+    # Get the other user in the chat (using user_id since room_name is the user_id)
+    try:
+        other_user = User.objects.get(user_id=room_name)
+    except User.DoesNotExist:
+        raise Http404("User not found")
+    
+    # Filter messages between current user and the other user
     chats = Message.objects.filter(
-        (Q(sender=request.user) & Q(receiver__username=room_name)) |
-        (Q(receiver=request.user) & Q(sender__username=room_name))
-    )
-
+        (Q(sender=request.user) & Q(receiver=other_user)) |
+        (Q(receiver=request.user) & Q(sender=other_user))
+    ).order_by('timestamp')
+    
     if search_query:
-        chats = chats.filter(Q(content__icontains=search_query))  
-
-    chats = chats.order_by('timestamp') 
+        chats = chats.filter(Q(content__icontains=search_query))
+    
+    # Get all users except current user for the sidebar
+    users = User.objects.exclude(user_id=request.user.user_id)
+    
+    # Prepare last messages for each user
     user_last_messages = []
-
     for user in users:
         last_message = Message.objects.filter(
             (Q(sender=request.user) & Q(receiver=user)) |
             (Q(receiver=request.user) & Q(sender=user))
         ).order_by('-timestamp').first()
-
+        
         user_last_messages.append({
             'user': user,
             'last_message': last_message
         })
-
-    # Sort user_last_messages by the timestamp of the last_message in descending order
+    
+    # Sort by last message timestamp
     user_last_messages.sort(
-        key=lambda x: x['last_message'].timestamp if x['last_message'] else None,
+        key=lambda x: x['last_message'].timestamp if x['last_message'] else datetime.min,
         reverse=True
     )
-
-    return render(request, 'chat.html', {
+    
+    return render(request, 'HelpDeskUI.html', {
         'room_name': room_name,
         'chats': chats,
         'users': users,
         'user_last_messages': user_last_messages,
-        'search_query': search_query 
+        'search_query': search_query,
+        'other_user': other_user  # Pass the other user to template
     })
 
 

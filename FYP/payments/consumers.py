@@ -3,6 +3,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from payments.models import LegacyUser
 from .models import HelpdeskAgent, Message
+from django.contrib.auth import get_user_model
+
 
 class HelpdeskConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -33,6 +35,8 @@ class HelpdeskConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def is_helpdesk_agent(self):
+        User = get_user_model()
+        user = User.objects.get(user_id=self.user.user_id)
         return hasattr(self.user, 'role_id') and self.user.role_id == 4
 
     @database_sync_to_async
@@ -42,7 +46,9 @@ class HelpdeskConsumer(AsyncWebsocketConsumer):
         agent.save()
 
 class ChatConsumer(AsyncWebsocketConsumer):
+    
     async def connect(self):
+        User = get_user_model()
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.user = self.scope['user']
         

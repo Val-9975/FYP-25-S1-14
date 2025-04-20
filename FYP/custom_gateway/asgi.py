@@ -11,7 +11,7 @@ import os
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-#from chat import routing  # Make sure this matches your chat app's routing module
+from payments import routing  # Make sure this matches your chat app's routing module
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'custom_gateway.settings')  # Keep your original settings
 

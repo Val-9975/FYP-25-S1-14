@@ -88,6 +88,7 @@ LOGOUT_REDIRECT_URL = '/login/'  # Redirect after logout
 
 
 WSGI_APPLICATION = 'custom_gateway.wsgi.application'
+ASGI_APPLICATION = 'custom_gateway.asgi.application'
 
 # FOR LIVECHAT
 
