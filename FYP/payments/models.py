@@ -200,17 +200,18 @@ class Message(models.Model):
     
 class HelpdeskAgent(models.Model):
     user = models.OneToOneField(
-        'payments.LegacyUser',  # Reference to your LegacyUser model
+        'payments.LegacyUser',
         on_delete=models.CASCADE,
-        limit_choices_to={'role_id': 4}  # Only allow users with role_id=4
+        limit_choices_to={'role_id': 4}
     )
     is_available = models.BooleanField(default=True)
     last_active = models.DateTimeField(auto_now=True)
-    current_chat = models.CharField(max_length=100, null=True, blank=True)  # Track current chat room
+    current_chat = models.CharField(max_length=100, null=True, blank=True)
+    last_login = models.DateTimeField(null=True, blank=True)
+    last_logout = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'helpdesk_agents'  # Specify your table name if needed
-        # managed = False  # Uncomment if you want to manage this table manually
+        db_table = 'helpdesk_agents'
 
     def __str__(self):
         return f"{self.user.email} (Available: {self.is_available})"
@@ -219,5 +220,5 @@ class HelpdeskAgent(models.Model):
     def get_available_agent(cls):
         return cls.objects.filter(
             is_available=True,
-            user__status='active'  # Only active users
+            user__status='active'
         ).first()
