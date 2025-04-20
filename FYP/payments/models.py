@@ -183,6 +183,7 @@ class Message(models.Model):
     )
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+    #ugh same here
 
     def __str__(self):
         return f"{self.sender} -> {self.receiver}: {self.content[:20]}"
@@ -200,6 +201,7 @@ class HelpdeskAgent(models.Model):
     class Meta:
         db_table = 'helpdesk_agents'  # Specify your table name if needed
         # managed = False  # Uncomment if you want to manage this table manually
+        #sigh I'm editing so I can just do this like why
 
     def __str__(self):
         return f"{self.user.email} (Available: {self.is_available})"
