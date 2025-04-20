@@ -34,9 +34,6 @@ from django.contrib.auth import get_user_model
 from .models import Message
 from django.db.models import Q
 from django.http import Http404
-from django.utils import timezone
-from django.contrib.auth import login as auth_login
-from django.contrib.auth import logout as auth_logout
 
 
 
@@ -105,33 +102,18 @@ def handle_login(request):
 
 def verify_otp(request):
     if request.method == "POST":
-        redirect_page = verify_otp_user(request)
-        
+        redirect_page = verify_otp_user(request)  # Calls function from verifyOTP.py
+
         if redirect_page == "expired":
             return render(request, 'verify_otp.html', {'otp_expired': True})
-        elif redirect_page:
-            # IMPORTANT: Re-authenticate here to get the user object
-            email = request.session.get('email')
-            password = request.session.get('password')
-            user = authenticate(request, username=email, password=password)
-            
-            if user:
-                auth_login(request, user)  # This triggers signals
-                
-                # Direct DB update for agents
-                if hasattr(user, 'role_id') and user.role_id == 4:
-                    HelpdeskAgent.objects.update_or_create(
-                        user=user,
-                        defaults={
-                            'is_available': True,
-                            'last_login': timezone.now(),
-                            'last_active': timezone.now()
-                        }
-                    )
-            
+        
+        elif redirect_page: 
             return redirect(redirect_page)
-    
-    return render(request, 'verify_otp.html')
+        else:
+            messages.error(request, "Invalid OTP or your account is suspended.")
+            return render(request, 'verify_otp.html')
+
+    return render(request, 'verify_otp.html')  # Ensure it always returns an HttpResponse
 
 
 
@@ -163,18 +145,6 @@ def custom_login(request):
         else:
             messages.error(request, "Invalid login credentials")
     return render(request, "login.html")
-
-def custom_logout(request):
-    if request.user.is_authenticated:
-        # Update agent status before logging out
-        if hasattr(request.user, 'role_id') and request.user.role_id == 4:
-            HelpdeskAgent.objects.filter(user=request.user).update(
-                is_available=False,
-                last_logout=timezone.now()
-            )
-    
-    auth_logout(request)
-    return redirect('login')
 
 
 
