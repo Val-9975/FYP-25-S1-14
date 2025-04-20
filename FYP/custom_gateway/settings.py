@@ -14,6 +14,12 @@ import os
 from pathlib import Path
 from cryptography.fernet import Fernet
 
+FERNET_SECRET_KEY = os.getenv('FERNET_SECRET_KEY')
+if not FERNET_SECRET_KEY:
+    raise ValueError("Missing FERNET_SECRET_KEY in environment variables")
+
+FERNET = Fernet(FERNET_SECRET_KEY.encode())
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 

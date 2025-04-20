@@ -331,27 +331,37 @@ def process_money_transfer(request):
         merchant_email = request.POST.get('merchant_email')
         amount_str = request.POST.get('amount')
         payment_method = request.POST.get('payment_method')
-        card_number = request.POST.get('card_number', '')
+        saved_card_id = request.POST.get('saved_card_id')
         expiry_date = request.POST.get('expiry_date', '')
         save_payment_method = request.POST.get('save_payment_method') == 'on'
+
+        card_number = ''
+        if saved_card_id:
+            try:
+                saved_card = SavedPaymentMethod.objects.get(id=saved_card_id, user=request.user)
+                vault_entry = TokenVault.objects.get(token=saved_card.token)
+                card_number = vault_entry.get_card_number()
+            except Exception:
+                messages.error(request, "Failed to retrieve saved card.")
+                return redirect('customer_dashboard')
+        else:
+            card_number = request.POST.get('card_number', '')
 
         # Validate card number using Luhn algorithm
         if not is_valid_card(card_number):
             messages.error(request, "Invalid card number.")
             return redirect('customer_dashboard')
 
-        # Check if expiry date format is MM/YY
+        # Check expiry format and expiration
         import re
         if not re.match(r'^\d{2}/\d{2}$', expiry_date):
             messages.error(request, "Invalid expiry date format.")
             return redirect('customer_dashboard')
-
-        #Check if card is expired
         if is_expired(expiry_date):
             messages.error(request, "Card is expired.")
             return redirect('customer_dashboard')
 
-        #Validate and parse amount
+        # Validate amount
         try:
             amount = Decimal(amount_str)
             if amount <= 0:
@@ -360,13 +370,12 @@ def process_money_transfer(request):
             messages.error(request, "Invalid amount.")
             return redirect('customer_dashboard')
 
-        #Get merchant by email
+        # Get merchant user by email
         merchant = get_object_or_404(LegacyUser, email=merchant_email, role_id=2)
-        token = f"tok_{uuid.uuid4().hex}"
         transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
         user = request.user
 
-        #Create the transaction within an atomic block
+        # Create transaction + save card if needed
         with db_transaction.atomic():
             transaction = MerchantTransaction.objects.create(
                 merchant=merchant,
@@ -383,16 +392,16 @@ def process_money_transfer(request):
                 country=user.country,
                 status='pending'
             )
-            # Create token vault entry
-            token = f"tok_{uuid.uuid4().hex}"
-            TokenVault.create_entry(token=token, card_number=card_number)
-            
-                      # Save payment method if requested
-            if save_payment_method and payment_method in ['VISA', 'CREDIT_CARD']:
+
+            # If not using saved card and user checked "save"
+            if save_payment_method and payment_method in ['VISA', 'CREDIT_CARD'] and not saved_card_id:
                 try:
+                    token = f"tok_{uuid.uuid4().hex}"
+                    TokenVault.create_entry(token=token, card_number=card_number)
+
                     expiry_month, expiry_year = map(int, expiry_date.split('/'))
                     expiry_year += 2000  # Convert YY to YYYY
-                    
+
                     SavedPaymentMethod.objects.create(
                         user=request.user,
                         payment_type=payment_method,
@@ -404,12 +413,13 @@ def process_money_transfer(request):
                 except Exception as e:
                     logger.error(f"Failed to save payment method: {str(e)}")
 
-        #Start the simulated payment processing in a background thread
+        # Launch async processing
         print(f"DEBUG: Starting thread for transaction {transaction.id}", flush=True)
         thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
         thread.start()
 
         return redirect('view_purchase')
+
 
 # views.py - Add this new view
 @login_required

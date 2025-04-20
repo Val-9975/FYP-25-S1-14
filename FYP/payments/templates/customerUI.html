@@ -194,6 +194,7 @@
                   <option value="">-- Select Saved Card --</option>
                   <!-- options will be added via JS -->
                 </select>
+                <input type="hidden" name="saved_card_id" id="saved_card_id" value="">
                 <p class="text-xs text-[#4e7397] mt-1">You can choose a saved card or fill in a new one below.</p>
               </div>
 
@@ -371,7 +372,6 @@
           const expiryDateInput = form.querySelector('input[name="expiry_date"]');
           const savedCardId = document.getElementById('saved_cards').value;
         
-
           // If using saved card, only validate CVV
           if (savedCardId) {
             if (cvvInput && !/^\d{3}$/.test(cvvInput.value)) {
@@ -379,10 +379,10 @@
               event.preventDefault();
               return false;
             }
-            return true;
+            return true; //STOP here, skip the rest
           }
         
-          // Required fields check
+          // Required fields
           if (
             !merchantEmail.value.trim() ||
             !amountInput.value.trim() ||
@@ -398,7 +398,6 @@
           if (paymentMethod.value === "SAFEPAY WALLET") {
             const walletBalance = parseFloat("{{ wallet_balance|floatformat:2 }}");
             const transactionAmount = parseFloat(amountInput.value);
-        
             if (transactionAmount > walletBalance) {
               if (!confirm("Insufficient wallet balance. Please top up wallet")) {
                 event.preventDefault();
@@ -408,45 +407,37 @@
             return true;
           }
         
-          // If not using saved card or wallet, validate card fields
-          if (!savedCardId && paymentMethod.value !== "SAFEPAY WALLET") {
-            if (cardNumberInput && !/^\d{16}$/.test(cardNumberInput.value)) {
-              alert("Bank card number must be 16 digits.");
-              event.preventDefault();
-              return false;
-            }
-        
-            if (cvvInput && !/^\d{3}$/.test(cvvInput.value)) {
-              alert("CVV must be exactly 3 digits.");
-              event.preventDefault();
-              return false;
-            }
-        
-            if (expiryDateInput && !/^\d{2}\/\d{2}$/.test(expiryDateInput.value)) {
-              alert("Expiry date must be in MM/YY format.");
-              event.preventDefault();
-              return false;
-            }
-        
-            const [expMonth, expYear] = expiryDateInput.value.split('/');
-            const month = parseInt(expMonth);
-            const year = parseInt(expYear);
-            const now = new Date();
-            const expiryDate = new Date(2000 + year, month - 1, 1);
-            expiryDate.setMonth(expiryDate.getMonth() + 1);
-            expiryDate.setDate(0);
-            expiryDate.setHours(23, 59, 59);
-        
-            if (expiryDate < now) {
-              alert("Card is expired.");
-              event.preventDefault();
-              return false;
-            }
+          // Manually entered card: full validation
+          if (!/^\d{16}$/.test(cardNumberInput.value)) {
+            alert("Bank card number must be 16 digits.");
+            event.preventDefault();
+            return false;
           }
         
-          //If all checks pass
+          if (!/^\d{3}$/.test(cvvInput.value)) {
+            alert("CVV must be exactly 3 digits.");
+            event.preventDefault();
+            return false;
+          }
+        
+          if (!/^\d{2}\/\d{2}$/.test(expiryDateInput.value)) {
+            alert("Expiry date must be in MM/YY format.");
+            event.preventDefault();
+            return false;
+          }
+        
+          const [expMonth, expYear] = expiryDateInput.value.split('/');
+          const expiryDate = new Date(2000 + parseInt(expYear), parseInt(expMonth), 0);
+          const now = new Date();
+          if (expiryDate < now) {
+            alert("Card is expired.");
+            event.preventDefault();
+            return false;
+          }
+        
           return true;
         }
+        
         
         
         function storeInLocalStorage() {
@@ -488,19 +479,28 @@
               });
         }
       
-        function handleSavedCardSelection() {
+      /*  function handleSavedCardSelection() {
           const savedCardSelect = document.getElementById('saved_cards');
           const selectedCardId = savedCardSelect.value;
+
+          document.getElementById('saved_card_id').value = selectedCardId;
+
         
           const cardNumberLabel = document.getElementById('cardNumberLabel');
           const cvvLabel = document.getElementById('cvvLabel');
           const expiryDateLabel = document.getElementById('expiryDateLabel');
         
           if (selectedCardId) {
-            // If a saved card is selected, hide card number and expiry, show only CVV
+            // If a saved card is selected, hide card number, show expiry (readonly) and CVV
             cardNumberLabel.classList.add('hidden');
-            expiryDateLabel.classList.add('hidden');
+            expiryDateLabel.classList.remove('hidden');
             cvvLabel.classList.remove('hidden');
+
+            const expiryInput = document.querySelector('input[name="expiry_date"]');
+            if (expiryInput) {
+              expiryInput.readOnly = false; 
+              expiryInput.value = data.formatted_expiry; 
+            }
         
             // Fetch saved card details from your backend
             fetch(`/payment-methods/${selectedCardId}/`)
@@ -516,6 +516,52 @@
               });
           } else {
             // If no saved card selected, show the full card input fields
+            togglePaymentFields();
+          }
+        } */
+
+        function handleSavedCardSelection() {
+          const savedCardSelect = document.getElementById('saved_cards');
+          const selectedCardId = savedCardSelect.value;
+          const expiryInput = document.querySelector('input[name="expiry_date"]');
+          
+          // Reset state first
+          if (expiryInput) {
+            expiryInput.readOnly = false;
+            expiryInput.value = "";
+          }
+        
+          if (selectedCardId) {
+            // Hide manual card number input, show CVV and Expiry
+            document.getElementById('cardNumberLabel').classList.add('hidden');
+            document.getElementById('expiryDateLabel').classList.remove('hidden');
+            document.getElementById('cvvLabel').classList.remove('hidden');
+            
+            // Fetch card details from backend
+            fetch(`/payment-methods/${selectedCardId}/`)
+              .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+              })
+              .then(data => {
+                // Set the values
+                document.querySelector('input[name="card_number"]').value = data.masked_number;
+                
+                if (expiryInput) {
+                  expiryInput.value = data.formatted_expiry;
+                  expiryInput.readOnly = true; // Make expiry read-only
+                }
+                
+                document.querySelector('input[name="cvv"]').value = "";
+                document.querySelector('input[name="cvv"]').focus();
+              })
+              .catch(error => {
+                console.error('Error loading saved card details:', error);
+                // Fallback to manual input if fetch fails
+                togglePaymentFields();
+              });
+          } else {
+            // No saved card selected - show full manual input
             togglePaymentFields();
           }
         }
