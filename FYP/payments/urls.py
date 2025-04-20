@@ -38,6 +38,7 @@ urlpatterns = [
     path('dashboard/Helpdesk/LiveChat/', views.helpDesk_dashboard, name='live_chat'),
     path('dashboard/Helpdesk/LiveChat/', views.live_chat, name='live_chat'),
     path('dashboard/Helpdesk/Settings/', views.helpdesk_settings, name='helpdesk_settings'),
+    path('dashboard/Helpdesk/chat/<str:room_name>/', views.chat_room, name='chat'),
 
 ]
 
