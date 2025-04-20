@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Waiting for Agent - SafePay</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="min-h-screen bg-slate-50 font-[Work Sans,Noto Sans,sans-serif] flex flex-col items-center justify-center p-6">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-sm p-8 text-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto mb-6"></div>
+        <h1 class="text-2xl font-bold mb-2">Connecting you to an agent</h1>
+        <p class="text-slate-600 mb-6">Please wait while we connect you to the next available helpdesk representative.</p>
+        
+        <div class="flex justify-center gap-4">
+            <a href="{% url 'customer_dashboard' %}" class="px-5 py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-sm font-medium transition">
+                Cancel
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Check for agent availability every 10 seconds
+        function checkAgentAvailability() {
+            fetch("{% url 'start_chat' %}")
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    }
+                });
+        }
+        
+        // Check immediately and then every 10 seconds
+        checkAgentAvailability();
+        setInterval(checkAgentAvailability, 10000);
+    </script>
+</body>
+</html>

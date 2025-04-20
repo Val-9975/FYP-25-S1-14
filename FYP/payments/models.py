@@ -4,6 +4,7 @@ from cryptography.fernet import Fernet
 from django.utils.functional import cached_property
 from django.contrib.auth.models import User
 import uuid
+from django.utils import timezone
 
 class Transaction(models.Model):
     user = models.ForeignKey(
@@ -176,3 +177,27 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.sender} -> {self.receiver}: {self.content[:20]}"
+    
+class HelpdeskAgent(models.Model):
+    user = models.OneToOneField(
+        'payments.LegacyUser',  # Reference to your LegacyUser model
+        on_delete=models.CASCADE,
+        limit_choices_to={'role_id': 4}  # Only allow users with role_id=4
+    )
+    is_available = models.BooleanField(default=True)
+    last_active = models.DateTimeField(auto_now=True)
+    current_chat = models.CharField(max_length=100, null=True, blank=True)  # Track current chat room
+
+    class Meta:
+        db_table = 'helpdesk_agents'  # Specify your table name if needed
+        # managed = False  # Uncomment if you want to manage this table manually
+
+    def __str__(self):
+        return f"{self.user.email} (Available: {self.is_available})"
+
+    @classmethod
+    def get_available_agent(cls):
+        return cls.objects.filter(
+            is_available=True,
+            user__status='active'  # Only active users
+        ).first()

@@ -1,61 +1,76 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.contrib.auth.models import User
-from .models import Message
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
+from payments.models import LegacyUser
+from .models import HelpdeskAgent, Message
 
+class HelpdeskConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        # Only allow helpdesk agents to connect
+        if not await self.is_helpdesk_agent():
+            await self.close()
+            return
+        
+        self.user = self.scope['user']
+        self.agent_group = "helpdesk_agents"
+        
+        # Add to helpdesk agents group
+        await self.channel_layer.group_add(
+            self.agent_group,
+            self.channel_name
+        )
+        
+        await self.update_agent_status(True)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if hasattr(self, 'agent_group'):
+            await self.channel_layer.group_discard(
+                self.agent_group,
+                self.channel_name
+            )
+        await self.update_agent_status(False)
+
+    @database_sync_to_async
+    def is_helpdesk_agent(self):
+        return hasattr(self.user, 'role_id') and self.user.role_id == 4
+
+    @database_sync_to_async
+    def update_agent_status(self, is_available):
+        agent, created = HelpdeskAgent.objects.get_or_create(user=self.user)
+        agent.is_available = is_available
+        agent.save()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
-        user1 = self.scope['user'].username 
-        user2 = self.room_name
-        self.room_group_name = f"chat_{''.join(sorted([user1, user2]))}"
-
-        # Join room group
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        self.user = self.scope['user']
+        
+        # For helpdesk agents (role_id=4)
+        if await self.is_helpdesk_agent():
+            await self.update_agent_status(True, self.room_name)
+        
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave room group
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-
-    async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        sender = self.scope['user']  
-        receiver = await self.get_receiver_user() 
-
-        await self.save_message(sender, receiver, message)
-
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            
-            {
-                'type': 'chat_message',
-                'sender': sender.username,
-                'receiver': receiver.username,
-                'message': message
-            }
-        )
+        # For helpdesk agents
+        if await self.is_helpdesk_agent():
+            await self.update_agent_status(True, None)
         
+        # Leave room group if needed
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
 
-    async def chat_message(self, event):
-        message = event['message']
-        sender = event['sender']
-        receiver = event['receiver']
+    @database_sync_to_async
+    def is_helpdesk_agent(self):
+        return hasattr(self.user, 'role_id') and self.user.role_id == 4
 
-        # Send message to WebSocket
-        await self.send(text_data=json.dumps({
-            'sender': sender,
-            'receiver': receiver,
-            'message': message
-        }))
-
-    @sync_to_async
-    def save_message(self, sender, receiver, message):
-        Message.objects.create(sender=sender, receiver=receiver, content=message)
-
-    @sync_to_async
-    def get_receiver_user(self):
-        return User.objects.get(username=self.room_name)
+    @database_sync_to_async
+    def update_agent_status(self, is_available, current_chat=None):
+        agent, created = HelpdeskAgent.objects.get_or_create(user=self.user)
+        agent.is_available = is_available
+        agent.current_chat = current_chat
+        agent.save()

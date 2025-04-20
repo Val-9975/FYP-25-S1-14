@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
-from .models import MerchantTransaction, LegacyUser, Transaction, UserAccountStatus, Complaint, TokenVault
+from .models import MerchantTransaction, LegacyUser, Transaction, UserAccountStatus, Complaint, TokenVault, HelpdeskAgent
 from .forms import ComplaintForm
 from django.db import transaction as db_transaction
 from .forms import TicketUpdateForm
@@ -478,6 +478,24 @@ def complaints_view(request):
     
     return render(request, 'complaints.html', context)
 
+#live chat function
+@login_required
+def initiate_chat(request):
+    # Find an available helpdesk agent (role_id=4)
+    available_agent = HelpdeskAgent.get_available_agent()
+    
+    if available_agent:
+        # Mark agent as busy
+        available_agent.is_available = False
+        available_agent.current_chat = f"chat_{request.user.id}_{available_agent.user.id}"
+        available_agent.save()
+        
+        # Redirect to chat room with agent's user_id as room_name
+        return redirect('chat', room_name=str(available_agent.user.user_id))
+    else:
+        # No agents available, show waiting page
+        return render(request, 'chat_waiting.html')
+
 
 
 # Admin
@@ -622,6 +640,7 @@ def chat_room(request, room_name):
         'user_last_messages': user_last_messages,
         'search_query': search_query 
     })
+
 
 @login_required
 def helpdesk_settings(request):
