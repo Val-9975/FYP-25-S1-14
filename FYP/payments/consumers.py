@@ -74,3 +74,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
         agent.is_available = is_available
         agent.current_chat = current_chat
         agent.save()
+    
+    
