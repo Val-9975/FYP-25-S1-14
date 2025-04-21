@@ -436,7 +436,7 @@ def get_saved_payment_methods(request):
     for method in methods:
         formatted_methods.append({
             'id': method['id'],
-            'display': f"{method['payment_type']} ending in {method['last_four_digits']} (Exp: {method['expiry_month']:02d}/{method['expiry_year'] % 100:02d})"
+            'display': f"{method['payment_type']} ending in {method['last_four_digits']}"
         })
     
     return JsonResponse({'methods': formatted_methods})

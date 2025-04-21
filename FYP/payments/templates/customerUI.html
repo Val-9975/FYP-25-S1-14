@@ -6,6 +6,14 @@
     <title>Customer Dashboard</title>
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+      .disabled-style {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: 0.5;
+      }
+    </style>
   </head>
   <body>
     <div class="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
@@ -479,7 +487,7 @@
               });
         }
       
-      /*  function handleSavedCardSelection() {
+         function handleSavedCardSelection() {
           const savedCardSelect = document.getElementById('saved_cards');
           const selectedCardId = savedCardSelect.value;
 
@@ -507,7 +515,8 @@
               .then(response => response.json())
               .then(data => {
                 document.querySelector('input[name="card_number"]').value = data.masked_number;
-                document.querySelector('input[name="expiry_date"]').value = data.formatted_expiry;
+                document.querySelector('input[name="expiry_date"]').value = "";
+                document.querySelector('input[name="expiry_date"]').focus();
                 document.querySelector('input[name="cvv"]').value = "";
                 document.querySelector('input[name="cvv"]').focus();
               })
@@ -518,54 +527,8 @@
             // If no saved card selected, show the full card input fields
             togglePaymentFields();
           }
-        } */
+        } 
 
-        function handleSavedCardSelection() {
-          const savedCardSelect = document.getElementById('saved_cards');
-          const selectedCardId = savedCardSelect.value;
-          const expiryInput = document.querySelector('input[name="expiry_date"]');
-          
-          // Reset state first
-          if (expiryInput) {
-            expiryInput.readOnly = false;
-            expiryInput.value = "";
-          }
-        
-          if (selectedCardId) {
-            // Hide manual card number input, show CVV and Expiry
-            document.getElementById('cardNumberLabel').classList.add('hidden');
-            document.getElementById('expiryDateLabel').classList.remove('hidden');
-            document.getElementById('cvvLabel').classList.remove('hidden');
-            
-            // Fetch card details from backend
-            fetch(`/payment-methods/${selectedCardId}/`)
-              .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-              })
-              .then(data => {
-                // Set the values
-                document.querySelector('input[name="card_number"]').value = data.masked_number;
-                
-                if (expiryInput) {
-                  expiryInput.value = data.formatted_expiry;
-                  expiryInput.readOnly = true; // Make expiry read-only
-                }
-                
-                document.querySelector('input[name="cvv"]').value = "";
-                document.querySelector('input[name="cvv"]').focus();
-              })
-              .catch(error => {
-                console.error('Error loading saved card details:', error);
-                // Fallback to manual input if fetch fails
-                togglePaymentFields();
-              });
-          } else {
-            // No saved card selected - show full manual input
-            togglePaymentFields();
-          }
-        }
-        
 
       document.addEventListener('DOMContentLoaded', function() {
         const storedMerchantEmail = localStorage.getItem('merchant_email');
@@ -587,7 +550,61 @@
         document.getElementById('saved_cards').addEventListener('change', handleSavedCardSelection);
         document.getElementById('paymentMethod').addEventListener('change', handleSavedCardSelection);
       });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const savedCardSelect     = document.getElementById('saved_cards');
+        const paymentMethodSelect = document.getElementById('paymentMethod');
+        const cardNumberLabel     = document.getElementById('cardNumberLabel');
+        const expiryDateLabel     = document.getElementById('expiryDateLabel');
+        const cvvLabel            = document.getElementById('cvvLabel');
+        const walletSection       = document.getElementById('walletSection');
+    
+        function updateFormState() {
+          const hasSaved  = savedCardSelect.value !== "";
+          const hasMethod = paymentMethodSelect.value !== "";
+    
+          // Reset all controls' states
+          savedCardSelect.disabled     = false;
+          paymentMethodSelect.disabled = false;
+          savedCardSelect.classList.remove('disabled-style');
+          paymentMethodSelect.classList.remove('disabled-style');
+          cardNumberLabel.classList.add('hidden');
+          expiryDateLabel.classList.add('hidden');
+          cvvLabel.classList.add('hidden');
+          walletSection.classList.add('hidden');
+    
+          if (hasSaved) {
+            // If Saved Card is selected → Disable payment method, show Expiry + CVV
+            paymentMethodSelect.disabled = true;
+            paymentMethodSelect.classList.add('disabled-style');
+            expiryDateLabel.classList.remove('hidden');
+            cvvLabel.classList.remove('hidden');
+          }
+          else if (hasMethod) {
+            // If Payment Method is selected → Disable Saved Card
+            savedCardSelect.disabled = true;
+            savedCardSelect.classList.add('disabled-style');
+    
+            if (paymentMethodSelect.value === 'SAFEPAY WALLET') {
+              // If it's a wallet → Show only wallet balance section
+              walletSection.classList.remove('hidden');
+            } else {
+              // For other card types → Show Card Number, Expiry, CVV
+              cardNumberLabel.classList.remove('hidden');
+              expiryDateLabel.classList.remove('hidden');
+              cvvLabel.classList.remove('hidden');
+            }
+          }
+          // If neither is selected, keep everything enabled and hide detailed fields
+        }
+    
+        savedCardSelect.addEventListener('change', updateFormState);
+        paymentMethodSelect.addEventListener('change', updateFormState);
+        updateFormState();  // Run once initially
+      });
+      
     </script>
 
+  
   </body>
 </html>
