@@ -341,6 +341,7 @@ def process_money_transfer(request):
                 saved_card = SavedPaymentMethod.objects.get(id=saved_card_id, user=request.user)
                 vault_entry = TokenVault.objects.get(token=saved_card.token)
                 card_number = vault_entry.get_card_number()
+                payment_method = saved_card.payment_type  
             except Exception:
                 messages.error(request, "Failed to retrieve saved card.")
                 return redirect('customer_dashboard')

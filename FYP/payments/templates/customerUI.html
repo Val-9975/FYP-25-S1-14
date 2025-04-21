@@ -198,17 +198,23 @@
               <!-- Saved Cards Section -->
               <div id="savedCardSection" class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label class="text-[#0e141b] text-sm font-semibold mb-1">Use Saved Card</label>
+                <p class="text-sm text-[#4e7397] italic mb-1">
+                  You can either use a saved card OR enter a new card below.
+                </p>
                 <select id="saved_cards" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base">
                   <option value="">-- Select Saved Card --</option>
                   <!-- options will be added via JS -->
                 </select>
                 <input type="hidden" name="saved_card_id" id="saved_card_id" value="">
-                <p class="text-xs text-[#4e7397] mt-1">You can choose a saved card or fill in a new one below.</p>
               </div>
 
               <!-- OR Divider -->
-              <div class="text-sm text-gray-400 my-2 pl-2">— or —</div>
-              
+              <div class="flex items-center my-3">
+                <hr class="flex-grow border-t border-gray-300">
+                <span class="mx-2 text-gray-400 text-sm italic">or</span>
+                <hr class="flex-grow border-t border-gray-300">
+              </div>
+                            
               <!-- Payment Method, Card Number, CVV & Wallet Section -->
               <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <!-- Payment Method Select (Required) -->
@@ -294,11 +300,25 @@
 
               <div class="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between">
                 <div class="flex flex-col justify-center">
-                  <p class="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">Save Payment Details</p>
-                  <p class="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">
-                    Enable this to save your payment details for future transactions
+                  <div class="flex items-center gap-2">
+                    <p class="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">
+                      Save Your Card
+                    </p>
+                    <!-- Info icon with tooltip -->
+                    <span class="group relative inline-block align-middle">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 cursor-pointer inline-block" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM9 9h2v5H9V9z" clip-rule="evenodd" />
+                      </svg>
+                      <span class="absolute z-10 hidden group-hover:block w-64 bg-white border border-gray-300 text-sm text-gray-700 p-2 rounded shadow-lg -left-1/2 mt-2 whitespace-normal">
+                        Card numbers are securely encrypted and stored. Only the last 4 digits are visible.
+                      </span>
+                    </span>
+                  </div>
+                  <p class="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2 mt-1">
+                    Enable this to save your bank card for future transactions
                   </p>
                 </div>
+              
               
                 <div class="shrink-0">
                   <label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#e7edf3] p-0.5">
