@@ -3,7 +3,8 @@ import threading
 import time
 import logging
 import random
-import datetime
+import json
+from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -479,6 +480,31 @@ def process_payment_delayed(transaction_id, amount, card_number):
                     recipient_list=['testmerchantt1212@gmail.com'],
                     fail_silently=False
                 )
+                
+                # Prepare simulated data to send to the "bank"
+                bank_data = {
+                    "merchant_id": str(transaction.merchant.pk),
+                    "card_number": card_number,  
+                    "cardholder_name": f"{transaction.customer_first_name} {transaction.customer_last_name}",
+                    "expiry_date": "12/26",  # simulate static expiry
+                    "cvv": "123",  # simulate dummy CVV
+                    "amount": str(transaction.amount_sent),
+                    "currency": "SGD",  # you can make this dynamic later
+                    "transaction_id": transaction.transaction_number,
+                    "timestamp": datetime.now().isoformat(),
+                    "billing_address": {
+                        "address": transaction.address,
+                        "city": transaction.city,
+                        "state": transaction.state,
+                        "country": transaction.country
+                    }
+                }
+
+                # Write this data to 'bank.txt'
+                with open("bank.txt", "a") as f:
+                    f.write(json.dumps(bank_data, indent=4))
+                    f.write("\n\n")
+                
             else:
                 attempt += 1
                 if attempt < max_retries:
