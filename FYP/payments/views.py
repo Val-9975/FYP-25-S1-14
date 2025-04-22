@@ -16,7 +16,7 @@ from .forms import TicketUpdateForm
 from .login import handle_login
 from .logout import custom_logout
 from decimal import Decimal, InvalidOperation
-from .models import SecurityProtocol
+from .models import SecurityProtocol, SecurityProtocolDetail
 from django.http import JsonResponse
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
@@ -33,6 +33,15 @@ logger = logging.getLogger(__name__)
 def create_user(request):
 
     if request.method == 'POST':
+        # First, check if the user agreed to the security protocols
+        agreement = request.POST.get('agree_terms')  # 'on' if checked, None otherwise
+        if not agreement:
+            messages.error(request, "Only if you agree to the protocols, then can an account be created.")
+            #Re-render the form with the current protocols content
+            protocol = SecurityProtocolDetail.objects.first()
+            return render(request, 'createUsers.html', {'security_protocol': protocol})
+
+        #collect form data
         email = request.POST.get('email')
         password = request.POST.get('password')
         first_name = request.POST.get('first_name')
@@ -80,7 +89,8 @@ def create_user(request):
         return redirect('create_user')  # Redirect after successful creation
     else:
         # Handle GET request by rendering a form page
-        return render(request, 'createUsers.html')
+        protocol = SecurityProtocolDetail.objects.first()
+        return render(request, 'createUsers.html', {'security_protocol': protocol})
 
 
 def handle_login(request):
@@ -243,6 +253,25 @@ def systemAdmin_dashboard(request) :
 
     }
     return render(request, 'SysAdminUI.html', context)
+
+def sysadmin_settings(request):
+    protocol = SecurityProtocolDetail.objects.first()
+    content = protocol.content if protocol and protocol.content else 'No security content saved yet.'
+    return render(request, 'SysAdminSecuritySettings.html', {
+        'protocol_content': content,
+    })
+
+def update_security_protocol_text(request):
+    if request.method == 'POST':
+        new_content = request.POST.get('security_content')
+        protocol = SecurityProtocolDetail.objects.first()
+        if protocol:
+            protocol.content = new_content
+            protocol.save()
+        else:
+            SecurityProtocolDetail.objects.create(content=new_content)
+        messages.success(request, "Security protocol details updated successfully.")
+    return redirect('sysadmin_settings')
 
 def process_payment(request):
     # Placeholder logic; replace with your actual payment processing code.
