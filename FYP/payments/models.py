@@ -167,7 +167,7 @@ class UserAccountStatus(models.Model):
         db_table = 'user_account_status'
         managed = False  
         
-# models.py - Add this new model
+
 class SavedPaymentMethod(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -179,8 +179,6 @@ class SavedPaymentMethod(models.Model):
         ('CREDIT_CARD', 'Credit Card')
     ])
     last_four_digits = models.CharField(max_length=4)
-    expiry_month = models.PositiveSmallIntegerField(null=True, blank=True)
-    expiry_year = models.PositiveSmallIntegerField(null=True, blank=True)
     token = models.CharField(max_length=255)  # Reference to encrypted data in TokenVault
     created_at = models.DateTimeField(auto_now_add=True)
     is_default = models.BooleanField(default=False)
@@ -195,7 +193,3 @@ class SavedPaymentMethod(models.Model):
     @property
     def masked_number(self):
         return f"************{self.last_four_digits}"
-
-    @property
-    def formatted_expiry(self):
-        return f"{self.expiry_month:02d}/{self.expiry_year % 100:02d}" 

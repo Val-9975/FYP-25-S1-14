@@ -407,8 +407,6 @@ def process_money_transfer(request):
                         user=request.user,
                         payment_type=payment_method,
                         last_four_digits=card_number[-4:],
-                        expiry_month=expiry_month,
-                        expiry_year=expiry_year,
                         token=token
                     )
                 except Exception as e:
@@ -428,9 +426,7 @@ def get_saved_payment_methods(request):
     methods = SavedPaymentMethod.objects.filter(user=request.user).values(
         'id',
         'payment_type',
-        'last_four_digits',
-        'expiry_month',
-        'expiry_year'
+        'last_four_digits'
     )
     
     formatted_methods = []
@@ -452,7 +448,6 @@ def get_saved_card_detail(request, card_id):
 
         return JsonResponse({
             'masked_number': f"************{card_number[-4:]}",
-            'formatted_expiry': saved_card.formatted_expiry
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
