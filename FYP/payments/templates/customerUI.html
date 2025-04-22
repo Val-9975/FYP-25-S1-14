@@ -564,7 +564,7 @@
           const urlTemplate = document.getElementById('delete-card-url-template').dataset.url;
           const deleteUrl = urlTemplate.replace('/0/', `/${selectedCardId}/`);
         
-          console.log("Deleting card at:", deleteUrl); // ✅ Debug 输出路径
+          console.log("Deleting card at:", deleteUrl); 
         
           fetch(deleteUrl, {
             method: 'POST',
@@ -578,7 +578,7 @@
               alert("Card deleted successfully.");
               document.getElementById('saved_cards').value = '';
               document.getElementById('saved_card_id').value = '';
-              loadSavedPaymentMethods();  // 重新加载卡列表
+              loadSavedPaymentMethods(); 
             } else {
               alert("Error: " + data.message);
             }
