@@ -81,6 +81,34 @@
             font-size: 40px; /* Adjust font size as needed */
             font-weight: bold;
         }
+        .wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .container, .info-section {
+            flex: 1;
+        }
+
+        .info-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            max-width: 400px;
+        }
+        .checkbox-group {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .checkbox-group label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        
     </style>
     <script>
         function showPopup(message, isSuccess) {
@@ -97,6 +125,7 @@
         <h2>SafePay</h2>
     </div>
 
+    <div class = "wrapper">
     <div class="container">
         <h2>Create Your SafePay Account</h2>
         
@@ -128,10 +157,35 @@
                 <option value="1">Customer</option>
                 <option value="2">Merchant</option>
             </select>
+            <!-- Agree checkbox -->
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" name="agree_terms" id="agree_terms"> I agree to the security protocols.
+                </label>
+            </div>
+
+
 
             <button type="submit" class="sign-up-button">Create Account</button>
         </form>
         <a href="{% url 'login' %}" class="back-to-login">Back to Login</a>
     </div>
+    <div class="info-section">
+        <h2 class="text-lg font-bold mb-2">Security Protocols</h2>
+        <p>{{ security_protocol.content|linebreaks }}</p>
+
+    </div>
+    </div>
 </body>
+
+<script>
+    function validateForm() {
+        const agreement = document.getElementById("agree_terms");
+        if (!agreement.checked) {
+            alert("Only if you agree to the protocols, then can an account be created.");
+            return false;
+        }
+        return true;
+    }
+</script>
 </html>

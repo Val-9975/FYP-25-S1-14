@@ -167,3 +167,7 @@ class UserAccountStatus(models.Model):
     class Meta:
         db_table = 'user_account_status'
         managed = False  
+
+class SecurityProtocolDetail(models.Model):
+    content = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
