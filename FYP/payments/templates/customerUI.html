@@ -206,6 +206,9 @@
                   <!-- options will be added via JS -->
                 </select>
                 <input type="hidden" name="saved_card_id" id="saved_card_id" value="">
+                <button type="button" onclick="deleteSelectedCard()" class="text-red-500 underline text-sm whitespace-nowrap">
+                  Delete
+                </button>
               </div>
 
               <!-- OR Divider -->
@@ -549,6 +552,43 @@
           }
         } 
 
+        function deleteSelectedCard() {
+          const selectedCardId = document.getElementById('saved_cards').value;
+          if (!selectedCardId) {
+            alert("Please select a saved card to delete.");
+            return;
+          }
+        
+          if (!confirm("Are you sure you want to delete this saved card?")) return;
+        
+          const urlTemplate = document.getElementById('delete-card-url-template').dataset.url;
+          const deleteUrl = urlTemplate.replace('/0/', `/${selectedCardId}/`);
+        
+          console.log("Deleting card at:", deleteUrl); // ✅ Debug 输出路径
+        
+          fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              alert("Card deleted successfully.");
+              document.getElementById('saved_cards').value = '';
+              document.getElementById('saved_card_id').value = '';
+              loadSavedPaymentMethods();  // 重新加载卡列表
+            } else {
+              alert("Error: " + data.message);
+            }
+          })
+          .catch(error => {
+            console.error("Error deleting card:", error);
+            alert("Something went wrong.");
+          });
+        }
+        
 
       document.addEventListener('DOMContentLoaded', function() {
         const storedMerchantEmail = localStorage.getItem('merchant_email');
@@ -625,6 +665,7 @@
       
     </script>
 
+    <span id="delete-card-url-template" data-url="{% url 'delete_saved_card' 0 %}"></span>
   
   </body>
 </html>

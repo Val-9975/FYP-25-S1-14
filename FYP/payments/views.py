@@ -26,6 +26,7 @@ from .login import authenticate_user
 from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
 from .models import SavedPaymentMethod
+from django.views.decorators.http import require_POST
 
 logger = logging.getLogger(__name__)
 
@@ -705,3 +706,13 @@ def update_user_status(request):
 @login_required
 def test(request):
     return render(request, 'Something.html')
+
+@login_required
+@require_POST
+def delete_saved_card(request, card_id):
+    try:
+        card = SavedPaymentMethod.objects.get(id=card_id, user=request.user)
+        card.delete()
+        return JsonResponse({'status': 'success'})
+    except SavedPaymentMethod.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Card not found'}, status=404)
