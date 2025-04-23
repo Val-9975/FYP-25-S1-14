@@ -588,6 +588,7 @@
               alert("Card deleted successfully.");
               document.getElementById('saved_cards').value = '';
               document.getElementById('saved_card_id').value = '';
+              document.getElementById('saved_cards').dispatchEvent(new Event('change'));
               loadSavedPaymentMethods(); 
             } else {
               alert("Error: " + data.message);
