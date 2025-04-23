@@ -589,7 +589,7 @@ def ticket_details(request, ticket_id):
         form = TicketUpdateForm(request.POST, instance=ticket)
         if form.is_valid():
             form.save()
-            return redirect('ticket_details.html', ticket_id=ticket.id)
+            return redirect('view_tickets')  
     else:
         # Display the form with the current ticket data
         form = TicketUpdateForm(instance=ticket)
