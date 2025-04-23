@@ -111,6 +111,7 @@ class MerchantTransaction(models.Model):
     country = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    transaction_date = models.DateTimeField(auto_now_add=True) 
     # token = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:

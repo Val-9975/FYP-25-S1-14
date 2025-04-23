@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafePay - Secure Payment Gateway</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/scrollreveal/4.0.9/scrollreveal.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1rem;
+      animation: fadeIn 2s ease-in-out;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      transition: transform 0.3s ease;
+    }
+    nav a:hover {
+      transform: scale(1.1);
+    }
+    .hero {
+      padding: 4rem 2rem;
+      text-align: center;
+      background: linear-gradient(to right, #007bff, #00c6ff);
+      color: white;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      animation: slideInDown 1.2s ease;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      animation: slideInUp 1.2s ease;
+    }
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+      padding: 3rem 2rem;
+      background-color: white;
+    }
+    .feature {
+      flex: 1 1 300px;
+      max-width: 300px;
+      background: #e9ecef;
+      padding: 2rem;
+      border-radius: 10px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .feature:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .testimonials {
+      padding: 3rem 2rem;
+      background-color: #f1f1f1;
+      text-align: center;
+    }
+    .testimonial {
+      margin: 1rem auto;
+      max-width: 600px;
+      font-style: italic;
+      animation: fadeInUp 1.5s ease;
+    }
+    footer {
+      background-color: #343a40;
+      color: white;
+      text-align: center;
+      padding: 2rem;
+    }
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="text-2xl font-bold animate-bounce">SafePay</h1>
+    <p>Your Trusted Payment Gateway</p>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#features">Features</a>
+      <a href="#testimonials">Testimonials</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <section class="hero bg-gradient-to-r from-blue-500 to-blue-400 text-white py-20 px-4 text-center">
+    <div class="max-w-4xl mx-auto">
+      <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-4 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 .552.224 1.05.586 1.414A2 2 0 0014 13a2 2 0 100-4 1.99 1.99 0 00-1.414.586A1.99 1.99 0 0012 11z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v7m0 0H9m3 0h3" />
+      </svg>
+    <h1>Secure. Fast. Reliable.</h1>
+    <p>Empowering your business with seamless and secure payment solutions.</p>
+    <div class="flex justify-center gap-3">
+      <a href="/login/" class="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium shadow hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out animate-pulse">
+        Get Started
+      </a>
+    </div>  
+  </section>
+
+  <section class="features" id="features">
+    <div class="feature" data-sr-id="1">
+      <h3>🔐 Bank-Level Security</h3>
+      <p>Encrypted transactions and fraud detection to protect your customers.</p>
+    </div>
+    <div class="feature" data-sr-id="2">
+      <h3>⚡ Lightning Fast</h3>
+      <p>Experience blazing fast checkout speeds and instant confirmations.</p>
+    </div>
+    <div class="feature" data-sr-id="3">
+      <h3>🌐 Global Support</h3>
+      <p>Accept payments worldwide in multiple currencies and payment methods.</p>
+    </div>
+  </section>
+
+  <section class="testimonials" id="testimonials">
+    <h2 class="text-xl font-semibold mb-6">What Our Users Say</h2>
+    <div class="testimonial">
+      "SafePay has transformed our checkout experience. Easy integration and super reliable!"
+      <br />– Sarah, eCommerce Store Owner
+    </div>
+    <div class="testimonial">
+      "No more payment headaches. Just peace of mind with every transaction."
+      <br />– Jamal, SaaS Founder
+    </div>
+  </section>
+
+  <footer id="contact">
+    <p>Contact us at support@safepay.com | &copy; 2025 SafePay Inc.</p>
+  </footer>
+
+  <script>
+    ScrollReveal().reveal('.feature', {
+      delay: 200,
+      distance: '40px',
+      origin: 'bottom',
+      interval: 200,
+      duration: 1000
+    });
+  </script>
+</body>
+</html>

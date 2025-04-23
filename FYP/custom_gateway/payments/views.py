@@ -10,6 +10,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
+from django.db.models.functions import TruncDate
 from .models import MerchantTransaction, LegacyUser, Transaction, UserAccountStatus, Complaint, TokenVault
 from .forms import ComplaintForm
 from django.db import transaction as db_transaction
@@ -28,6 +29,9 @@ from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
 logger = logging.getLogger(__name__)
 
+
+def home(request):
+    return render(request, 'index.html')
 
 def create_user(request):
 
@@ -178,6 +182,18 @@ def merchant_dashboard(request):
     # Get count of pending transactions
     pending_count = merchant_transactions.filter(status='pending').count()
 
+   # Prepare data for the balance chart (e.g., total balance per day)
+    balance_data = (
+        merchant_transactions.filter(status='success')
+        .annotate(date=TruncDate('transaction_date'))  # Truncate the date to day-level
+        .values('date')
+        .annotate(total_balance=Sum('amount_sent'))
+        .order_by('date')
+    )
+
+    # Separate dates and balances for the chart
+    dates = [entry['date'].strftime('%Y-%m-%d') for entry in balance_data]
+    balances = [entry['total_balance'] for entry in balance_data]
 
     # Prepare the context with merchant information and filtered transactions
     context = {

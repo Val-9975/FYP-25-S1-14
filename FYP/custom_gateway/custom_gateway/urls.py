@@ -9,8 +9,10 @@ from payments.views import customer_dashboard
 from payments.views import create_user
 from payments.views import verify_otp
 from payments.views import handle_login
+from payments.views import home
 
 urlpatterns = [
+    path('', home, name='home'),
     path('login/', handle_login, name='handle_login'),
     path('verify_otp/', verify_otp, name='verify_otp'),
     path('logout/', custom_logout, name='logout'),

@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
     <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
           href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans:wght@400;500;700;900&amp;family=Work+Sans:wght@400;500;700;900"/>
-    <style>
+          <style>
         body {
             font-family: "Work Sans", "Noto Sans", sans-serif;
             display: flex;
@@ -66,18 +66,41 @@
             color: #007bff;
             text-decoration: none;
         }
+        .safepay {
+            font-size: 1.25rem;         /* Similar to text-lg */
+            font-weight: bold;
+            text-decoration: none;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+          
+        .safepay:hover {
+        color: #007BFF;             /* A nice blue on hover */
+        }
+        .svg-hover {
+            color: black;
+            transition: transform 0.2s ease, fill 0.3s ease;
+        }
+    
+        .svg-hover:hover {
+            transform: scale(1.1); /* Slightly enlarge the SVG on hover */
+            color: #3498db; /* Change the color of the SVG */
+        }
+          
     </style>
     </style>
 </head>
 <body>
    
     <div class="flex items-center gap-2">
-        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
-            <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
-        </svg>
+        <a href="/">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
+                <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
+            </svg>
+        </a>
     
-    <h2 class="text-lg font-bold">SafePay</h2>
-</div>
+        <a href="/" class="safepay">SafePay</a>
+    </div>
 
 
 <div class="container">
