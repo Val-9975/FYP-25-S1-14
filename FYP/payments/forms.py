@@ -23,11 +23,13 @@ class ComplaintForm(forms.ModelForm):
 class TicketUpdateForm(forms.ModelForm):
     class Meta:
         model = Complaint
-        fields = ['status', 'comments']
-
-    STATUS_CHOICES = [
-        ('Open', 'Open'),
-        ('Closed', 'Closed'),
-    ]
-    status = forms.ChoiceField(choices=STATUS_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
-    comments = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-textarea', 'rows': 4}))
+        fields = ['complaint_status', 'closing_comment']
+        widgets = {
+            'complaint_status': forms.Select(
+                choices=[('Open', 'Open'), ('Closed', 'Closed')],
+                attrs={'class': 'form-select'}
+            ),
+            'closing_comment': forms.Textarea(
+                attrs={'class': 'form-textarea', 'rows': 4}
+            ),
+        }

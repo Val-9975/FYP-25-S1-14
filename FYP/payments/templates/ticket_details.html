@@ -58,11 +58,11 @@
                         {% csrf_token %}
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-[#0e141b]">Status</label>
-                            {{ form.status }}
+                            {{ form.complaint_status }}
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-[#0e141b]">Comments</label>
-                            {{ form.comments }}
+                            {{ form.closing_comment }}
                         </div>
                         <button type="submit" class="mt-4 px-6 py-2 bg-[#1980e6] text-white rounded-xl hover:bg-blue-700">Submit</button>
                     </form>
