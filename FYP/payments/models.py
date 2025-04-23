@@ -176,7 +176,7 @@ class SavedPaymentMethod(models.Model):
     )
     payment_type = models.CharField(max_length=20, choices=[
         ('VISA', 'VISA'),
-        ('CREDIT_CARD', 'Credit Card')
+        ('CREDIT CARD', 'Credit Card')
     ])
     last_four_digits = models.CharField(max_length=4)
     token = models.CharField(max_length=255)  # Reference to encrypted data in TokenVault
