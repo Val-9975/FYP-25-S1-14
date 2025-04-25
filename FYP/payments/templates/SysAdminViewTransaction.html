@@ -54,17 +54,22 @@
               <p class="text-[#0e141b]"><strong>Transaction Number:</strong> {{ transaction.transaction_number }}</p>
               <p class="text-[#0e141b]"><strong>Customer Name:</strong> {{ transaction.customer_first_name }} {{ transaction.customer_last_name }}</p>
               <p class="text-[#0e141b]"><strong>Merchant Email:</strong> {{ transaction.merchant.email }}</p>
-              <p class="
-              {% if transaction.amount_sent > 10000 %}
-                text-red-600 font-bold
-              {% else %}
-                text-[#0e141b]
-              {% endif %}
-            "><strong>Amount Sent:</strong> ${{ transaction.amount_sent }}</p>
+              <p class="{% if transaction.amount_sent > 10000 or transaction.id in suspicious_ids %}text-red-600 font-bold{% else %}text-[#0e141b]{% endif %}">
+                <strong>Amount Sent:</strong> ${{ transaction.amount_sent }}
+                {% if transaction.amount_sent > 10000 %}
+                  <span class="ml-2 text-sm text-red-700 font-semibold italic">(Suspicious amount)</span>
+                {% endif %}
+                {% if transaction.id in suspicious_ids %}
+                  <span class="ml-2 text-sm text-red-700 font-semibold italic">(Possible fraud)</span>
+                {% endif %}
+              </p>              
               <p class="text-[#0e141b]"><strong>Payment Method:</strong> {{ transaction.payment_method }}</p>
               <p class="text-[#0e141b]"><strong>Date:</strong> {{ transaction.created_at|date:"Y-m-d H:i" }}</p>
-              {% if transaction.amount_sent > 10000 %}
-                <button class="mt-4 bg-red-600 text-white px-4 py-2 rounded-xl" onclick="suspendCustomer('{{ transaction.id }}')">Suspend Customer</button>
+              {% if transaction.amount_sent > 10000 or transaction.id in suspicious_ids %}
+                <button class="mt-4 bg-red-600 text-white px-4 py-2 rounded-xl"
+                        onclick="suspendCustomer('{{ transaction.id }}')">
+                  Suspend Customer
+                </button>
               {% endif %}
             </div>
           {% endfor %}
