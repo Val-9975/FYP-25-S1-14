@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>System Admin Dashboard</title>
+  <title>Helpdesk Profile Page</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&display=swap"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
@@ -16,11 +16,9 @@
         <!-- Top Navigation Bar -->
         <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
             <div class="flex items-center gap-2">
-                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
-                    <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
-                </svg>
+
             
-            <h2 class="text-lg font-bold">SafePay</h2>
+            <h2 class="text-lg font-bold">Helpdesk Dashboard</h2>
         </div>
             <div class="flex items-center gap-4">
                 <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
@@ -40,30 +38,27 @@
     <div class="flex flex-1">
 
             <!-- Sidebar -->
-            <div class="w-64 bg-white border-r border-slate-200 p-4">
-                <h2 class="text-lg font-bold text-slate-900 mb-4">Dashboard</h2>
+            <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
+                <h2 class="text-lg font-bold text-[#0e141b] mb-4">Dashboard</h2>
                 <ul class="space-y-2">
-                    <li>
-                        <a href="{% url 'sysadmin_dashboard' %}" class="flex items-center gap-3 p-2 text-[#0c1116] bg-[#e7edf3] rounded-xl">
-                            System Admin Details
-                        </a>
-                    </li>                                        
-                    <li><a href="{% url 'sysadmin_view_transactions' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Monitor All Transactions</a></li>
-                    <li><a href="{% url 'sysadmin_manage_users' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Manage Users</a></li>
-                    <li><a href="{% url 'sysadmin_settings' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Security Settings</a></li>
+                    <li><a href="{% url 'helpdesk_dashboard' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">Live Chat</a></li>
+                    <li><a href="{% url 'view_tickets' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Tickets</a></li>
+                    <li><a href="#" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Analytics</a></li>
+                    <li><a href="{% url 'helpdesk_settings' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Settings</a></li>
+                    <li><a href="{% url 'helpdesk_profile' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">HelpDesk Profile</a></li>
                 </ul>
             </div>
 
-      <!-- Admin Details -->
+      <!-- Helpdesk User Details -->
       <main class="flex-1 p-8">
-        <h2 class="text-3xl font-bold text-slate-900 mb-6">System Admin Details</h2>
+        <h2 class="text-3xl font-bold text-slate-900 mb-6">Helpdesk User Details</h2>
 
         <div class="bg-white rounded-xl shadow p-6">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-slate-700">
             <div>
                 <div class="flex items-center gap-2 text-slate-5000 mb-1">
                     <i data-lucide="badge-check" class="w-5 h-5"></i>
-                    <p class="font-semibold text-lg">Admin User ID</p>
+                    <p class="font-semibold text-lg">Helpdesk User ID</p>
                 </div>
                 <p class="text-lg text-slate-800">{{ user_id }}</p>
             </div>
@@ -142,12 +137,12 @@
 
           </div>
         </div>
-        <!-- Change Password Button -->
-        <div class="mt-6">
-            <a href="{% url 'change_passwordProfile' %}" class="inline-block bg-blue-600 text-white font-bold px-6 py-2 rounded-xl hover:bg-blue-700 transition">
-                Change Password
-            </a>
-        </div>
+                <!-- Change Password Button -->
+                <div class="mt-6">
+                    <a href="{% url 'change_passwordProfile' %}" class="inline-block bg-blue-600 text-white font-bold px-6 py-2 rounded-xl hover:bg-blue-700 transition">
+                        Change Password
+                    </a>
+                </div>
       </main>
     </div>
   </div>

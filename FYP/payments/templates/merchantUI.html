@@ -218,7 +218,8 @@
               </div>
             </button>
             <div class="dropdown-content">
-              <a href="#">Profile</a>
+              <a href="{% url 'merchant_dashboard' %}">Transactions</a>
+              <a href="{% url 'merchant_profile' %}">Profile</a>
               <a href="#">Settings</a>
               <a href="{% url 'logout' %}">Logout</a>
           </div>          
@@ -227,7 +228,9 @@
         
         <!-- Main Content -->
         <main class="flex-1 p-6">
+
           <h2 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em]">All Transactions</h2>
+          
           <div class="relative mt-4">
               <button onclick="toggleDropdown()" class="rounded-xl h-10 px-4 bg-[#1980e6] text-white text-sm font-bold">Filter</button>
               <div id="filterDropdown" class="absolute bg-white shadow-md rounded-xl mt-2 p-4 hidden">
@@ -296,19 +299,7 @@
               </table>
               
             </div>
-            <div class="flex-1 bg-white p-6 shadow-sm">
-              <h2 class="text-xl font-bold text-slate-900 mb-4">Merchant Details</h2>
-              <p class="text-slate-700"><strong>Merchant ID:</strong> {{user_id}}</p>
-              <p class="text-slate-700"><strong>Merchant Email:</strong> {{email}}</p>
-              <p class="text-slate-700"><strong>Merchant First Name:</strong> {{first_name}}</p>
-              <p class="text-slate-700"><strong>Merchant Last Name:</strong> {{last_name}}</p>
-              <p class="text-slate-700"><strong>Merchant Phone Number:</strong> {{phone_number}}</p>
-              <p class="text-slate-700"><strong>Merchant Address:</strong> {{address}}</p>
-              <p class="text-slate-700"><strong>Merchant City:</strong> {{city}}</p>
-              <p class="text-slate-700"><strong>Merchant State:</strong> {{state}}</p>
-              <p class="text-slate-700"><strong>Merchant Country:</strong> {{country}}</p>
-              <p class="text-slate-700"><strong>Merchant Zipcode:</strong> {{zip_code}}</p>
-          </div>
+
         </main>
         <div class="flex px-4 py-3 justify-center">
           <a href="{% url 'contact_support' %}?dashboard=merchant" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]">

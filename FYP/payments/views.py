@@ -5,7 +5,7 @@ import logging
 import random
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
@@ -20,7 +20,7 @@ from .models import SecurityProtocol, SecurityProtocolDetail
 from django.http import JsonResponse
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import User
 from .login import authenticate_user
 from .verifyOTP import verify_otp_user
@@ -29,6 +29,8 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from datetime import datetime, timedelta
 from django.utils.timezone import now
+from django.conf import settings
+from django.urls import reverse
 logger = logging.getLogger(__name__)
 
 
@@ -65,15 +67,26 @@ def create_user(request):
             messages.error(request, "Invalid Role ID")
             return render(request, 'createUsers.html', {'email': email, 'first_name': first_name, 'last_name': last_name, 'phone_number': phone_number, 'address': address, 'city': city, 'state': state, 'country': country, 'zip_code': zip_code})
 
-        status = request.POST.get('status', 'active')  # Default to 'active' if not provided
+        # Validate Admin Code for Admin or HelpDesk roles
+        if role_id in [3, 4]:
+            entered_admin_code = request.POST.get('admin_code', '').strip()
+            expected_code = settings.ADMIN_ROLE_CREATION_CODE
 
-        # Hash the password before saving (not hashing for now, if not cannot see in database)
-        #hashed_password = make_password(password)
+            if entered_admin_code != expected_code:
+                messages.error(request, "Invalid Admin Code.")
+                protocol = SecurityProtocolDetail.objects.first()
+                return render(request, 'createUsers.html', {
+                    'security_protocol': protocol,
+                    'email': email, 'first_name': first_name, 'last_name': last_name,
+                    'phone_number': phone_number, 'address': address, 'city': city,
+                    'state': state, 'country': country, 'zip_code': zip_code
+                })
+        status = request.POST.get('status', 'active')  # Default to 'active' if not provided
 
         # Create the user and save to the database
         user = LegacyUser(
             email=email,
-            password=password, #hashed_password to hash it
+            password=make_password(password), #hashed_password using Django's PBKDF2-SHA256 to hash it
             first_name=first_name,
             last_name=last_name,
             phone_number=phone_number,
@@ -287,6 +300,59 @@ def systemAdmin_dashboard(request) :
     }
     return render(request, 'SysAdminUI.html', context)
 
+@login_required
+def change_passwordProfile(request):
+    if request.method == "POST":
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        user = request.user
+
+        if not check_password(current_password, user.password):
+            messages.error(request, "Current password is incorrect.")
+            return redirect('change_password')
+
+        if new_password != confirm_password:
+            messages.error(request, "New password and confirm password do not match.")
+            return redirect('change_password')
+
+        user.password = make_password(new_password)
+        user.save()
+
+        update_session_auth_hash(request, user)
+
+        messages.success(request, "Password changed successfully.")
+
+        # Role-based redirect name
+        role_redirects = {
+            1: 'customer_profile',
+            2: 'merchant_profile',
+            3: 'sysadmin_dashboard',
+            4: 'helpdesk_profile'
+        }
+
+        url_name = role_redirects.get(user.role_id, 'home')
+        resolved_url = reverse(url_name)  # this returns e.g. "/customer/profile/"
+
+        return render(request, 'changePasswordFromProfile.html', {
+            'redirect_url': resolved_url
+        })
+
+    # For GET requests, you can still pass the redirect link
+    role_redirects = {
+        1: 'customer_profile',
+        2: 'merchant_profile',
+        3: 'sysadmin_dashboard',
+        4: 'helpdesk_profile'
+    }
+    url_name = role_redirects.get(request.user.role_id, 'home')
+    resolved_url = reverse(url_name)
+
+    return render(request, 'changePasswordFromProfile.html', {
+        'redirect_url': resolved_url
+    })
+
 def sysadmin_settings(request):
     protocol = SecurityProtocolDetail.objects.first()
     content = protocol.content if protocol and protocol.content else 'No security content saved yet.'
@@ -329,6 +395,26 @@ def custom_logout(request):
 # Customer
 
 @login_required
+def customer_profile(request) :
+    user = request.user #get currently logged in user
+
+    context = {
+        'user_id' : user.pk,
+        'email' : user.email,
+        'first_name' : user.first_name,
+        'last_name' : user.last_name,
+        'phone_number' : user.phone_number,
+        'address' : user.address,
+        'city' : user.city,
+        'state' : user.state,
+        'country' : user.country,
+        'zip_code' : user.zip_code,
+        #make sure user mode in model.py has these fields
+
+    }
+    return render(request, 'CustomerProfile.html', context)
+
+@login_required
 def top_up_wallet(request):
     if request.method == 'POST':
         top_up_amount = request.POST.get('top_up_amount', 0)
@@ -358,6 +444,27 @@ def contact_support(request):
     return render(request, 'contact.html')
 
 # Merchant
+
+@login_required
+def merchant_profile(request) :
+    user = request.user #get currently logged in user
+
+    context = {
+        'user_id' : user.pk,
+        'email' : user.email,
+        'first_name' : user.first_name,
+        'last_name' : user.last_name,
+        'phone_number' : user.phone_number,
+        'address' : user.address,
+        'city' : user.city,
+        'state' : user.state,
+        'country' : user.country,
+        'zip_code' : user.zip_code,
+        #make sure user mode in model.py has these fields
+
+    }
+    return render(request, 'MerchantProfile.html', context)
+
 def merchant_transactions_view(request):
     transactions = MerchantTransaction.objects.all()  # Fetch all transactions
     return render(request, 'transactions.html', {'transactions': transactions})
@@ -641,7 +748,7 @@ def ticket_details(request, ticket_id):
         form = TicketUpdateForm(request.POST, instance=ticket)
         if form.is_valid():
             form.save()
-            return redirect('ticket_details.html', ticket_id=ticket.id)
+            return redirect('view_tickets')  
     else:
         # Display the form with the current ticket data
         form = TicketUpdateForm(instance=ticket)
@@ -653,6 +760,26 @@ def ticket_details(request, ticket_id):
 
     return render(request, 'ticket_details.html', context)
 
+@login_required
+def helpdesk_profile(request) :
+    user = request.user #get currently logged in user
+
+    context = {
+        'user_id' : user.pk,
+        'email' : user.email,
+        'first_name' : user.first_name,
+        'last_name' : user.last_name,
+        'phone_number' : user.phone_number,
+        'address' : user.address,
+        'city' : user.city,
+        'state' : user.state,
+        'country' : user.country,
+        'zip_code' : user.zip_code,
+        #make sure user mode in model.py has these fields
+
+    }
+    return render(request, 'HelpdeskProfile.html', context)
+
 
 @login_required
 def live_chat(request):
@@ -661,6 +788,7 @@ def live_chat(request):
 @login_required
 def helpdesk_settings(request):
     return render(request, 'HelpdeskSettings.html')
+
 
 @login_required
 def suspend_customer(request):

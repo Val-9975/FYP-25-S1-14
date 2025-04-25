@@ -109,7 +109,7 @@ EMAIL_HOST_USER = 'safepay2025@gmail.com'  # A dedicated sender account
 EMAIL_HOST_PASSWORD = 'jwdg hwje yioh tqyb'        # App password or SMTP password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
+ADMIN_ROLE_CREATION_CODE = 'SECURE2025'
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

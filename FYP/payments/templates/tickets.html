@@ -12,17 +12,40 @@
     <div class="relative flex min-h-screen flex-col overflow-x-hidden">
         <header class="flex items-center justify-between border-b border-[#e7edf3] px-10 py-3">
             <h2 class="text-lg font-bold text-[#0e141b]">Helpdesk Dashboard</h2>
-            <!-- Logout Button -->
-            <li class="list-none">
-                <form action="/logout/" method="POST">
-                    {% csrf_token %}
-                    <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
-                    <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
-                        Logout
-                    </button>
-                </form>
-            </li>
+            <!-- Filter and Search Section -->
+            <div class="flex items-center gap-4">
+                <!-- Status Filter -->
+                <div class="relative">
+                    <select id="status-filter" class="rounded-xl bg-slate-100 px-4 py-2 text-sm appearance-none pr-8">
+                        <option value="Open" selected>Open Tickets</option>
+                        <option value="Closed">Closed Tickets</option>
+                        <option value="All">All Tickets</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Date Filter -->
+                <div class="relative">
+                    <input type="date" id="date-filter" class="rounded-xl bg-slate-100 px-4 py-2 text-sm">
+                </div>
+                
+                <!-- Search and Logout -->
+                <li class="list-none">
+                    <form action="/logout/" method="POST" class="flex items-center gap-2">
+                        {% csrf_token %}
+                        <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
+                        <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
+                            Logout
+                        </button>
+                    </form>
+                </li>
+            </div>
         </header>
+        
         <div class="flex flex-1">
             <!-- Sidebar -->
             <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
@@ -42,7 +65,7 @@
                 <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">Open Tickets</h1>
 
                 <!-- Tickets Grid -->
-                <div class="grid gap-4">
+                <div class="grid gap-4" id="tickets-container">
                     {% for complaint in complaints %}
                     <a href="{% url 'ticket_details' ticket_id=complaint.id %}" class="block">
                         <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
@@ -51,11 +74,14 @@
                             <p class="text-[#4e7397]"><strong>Complaint:</strong> {{ complaint.complaint_text }}</p>
                             <p class="text-[#4e7397]"><strong>Created At:</strong> {{ complaint.created_at }}</p>
                             <p class="text-[#4e7397]"><strong>Complained Against:</strong> {{ complaint.complained_against.email }}</p>
+                            <p class="text-[#4e7397]"><strong>Ticket Status:</strong> {{ complaint.complaint_status }}</p>
+                            <p class="text-[#4e7397] hidden closing-comment">
+                                <strong>Closing Comment:</strong> {{ complaint.closing_comment }}
+                            </p>
                         </div>
                     </a>
                     {% endfor %}
                 </div>
-
 
                 <!-- Helpdesk Personnel Details -->
                 <div class="flex-1 bg-white p-6 shadow-sm">
@@ -68,5 +94,56 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusFilter = document.getElementById('status-filter');
+            const dateFilter = document.getElementById('date-filter');
+            const ticketsContainer = document.getElementById('tickets-container');
+            
+            function filterTickets() {
+                const statusValue = statusFilter.value;
+                const dateValue = dateFilter.value;
+                const tickets = ticketsContainer.querySelectorAll('a');
+                
+                tickets.forEach(ticket => {
+                    const status = ticket.querySelector('p:nth-last-child(2)').textContent.replace('Ticket Status: ', '').trim();
+                    const date = ticket.querySelector('p:nth-last-child(4)').textContent.replace('Created At: ', '').trim();
+                    const ticketDate = new Date(date.split(' ')[0]);
+                    const filterDate = dateValue ? new Date(dateValue) : null;
+                    const closingComment = ticket.querySelector('.closing-comment');
+                    
+                    // Show/hide closing comment based on status
+                    if (status === 'Closed') {
+                        closingComment.classList.remove('hidden');
+                    } else {
+                        closingComment.classList.add('hidden');
+                    }
+                    
+                    // Filter logic
+                    let statusMatch = true;
+                    let dateMatch = true;
+                    
+                    if (statusValue !== 'All') {
+                        statusMatch = status === statusValue;
+                    }
+                    
+                    if (filterDate) {
+                        dateMatch = ticketDate.toDateString() === filterDate.toDateString();
+                    }
+                    
+                    if (statusMatch && dateMatch) {
+                        ticket.style.display = 'block';
+                    } else {
+                        ticket.style.display = 'none';
+                    }
+                });
+            }
+            
+            statusFilter.addEventListener('change', filterTickets);
+            dateFilter.addEventListener('change', filterTickets);
+            filterTickets(); // Initialize
+        });
+    </script>
 </body>
 </html>

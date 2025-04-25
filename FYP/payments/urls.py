@@ -6,16 +6,19 @@ urlpatterns = [
     path('create-user/', views.create_user, name='create_user'),
     path('pay/', views.process_payment, name='process_payment'),
     path('my-transactions/', views.user_transactions, name='user_transactions'),
+    path('change-password/', views.change_passwordProfile, name='change_passwordProfile'),
     # Add the customer dashboard URL:
     path('dashboard/customer/', views.customer_dashboard, name='customer_dashboard'),
     path('dashboard/customer/viewPurchaseUI/', views.view_purchase, name='view_purchase'),
     path('dashboard/customer/contact/', views.contact_support, name='contact_support'),
     path('dashboard/customer/top-up-wallet/', views.top_up_wallet, name='top_up_wallet'),
+    path('dashboard/customer/customer_profile/', views.customer_profile, name='customer_profile'),
     path('payments/transfer/', views.process_money_transfer, name='process_money_transfer'),
     
     # Add merchant dashboard URL:
     path('dashboard/merchant/', views.merchant_dashboard, name='merchant_dashboard'),
     path('dashboard/merchant/contact/', views.contact_support, name='contact_support_merchant'),
+    path('dashboard/merchant/profile/', views.merchant_profile, name='merchant_profile'),
     
     # Add Admin stuff here
     path('dashboard/systemadmin/viewTransactions/', views.sysadmin_view_transactions, name='sysadmin_view_transactions'),
@@ -40,6 +43,7 @@ urlpatterns = [
     path('dashboard/Helpdesk/LiveChat/', views.helpDesk_dashboard, name='live_chat'),
     path('dashboard/Helpdesk/LiveChat/', views.live_chat, name='live_chat'),
     path('dashboard/Helpdesk/Settings/', views.helpdesk_settings, name='helpdesk_settings'),
+    path('dashboard/Helpdesk/Profile/', views.helpdesk_profile, name='helpdesk_profile'),
 
 ]
 
