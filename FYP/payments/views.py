@@ -565,15 +565,24 @@ def submit_complaint(request):
         if form.is_valid():
             # Set the complainant (user) to the logged-in user
             complaint = form.save(commit=False)
-            complaint.user = request.user  # Automatically set the logged-in user as the complainant
+            complaint.user = request.user
             complaint.save()
 
             messages.success(request, "Complaint submitted successfully.")
-            return redirect('complaints_view')  # Or wherever you want to redirect after success
+            
+            # Redirect based on user role
+            if request.user.role_id == 1:  # Customer
+                return redirect('customer_dashboard')
+            elif request.user.role_id == 2:  # Merchant
+                return redirect('merchant_dashboard')
+            else:
+                # Fallback for any other roles
+                return redirect('complaints_view')
     else:
         form = ComplaintForm()
 
     return render(request, 'complaints.html', {'form': form})
+
 
 @login_required
 def view_submitted_complaints(request):
