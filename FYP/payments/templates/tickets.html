@@ -67,20 +67,28 @@
                 <!-- Tickets Grid -->
                 <div class="grid gap-4" id="tickets-container">
                     {% for complaint in complaints %}
-                    <a href="{% url 'ticket_details' ticket_id=complaint.id %}" class="block">
-                        <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                            <h3 class="text-lg font-semibold text-[#0e141b]">Ticket #{{ complaint.id }}</h3>
-                            <p class="text-[#4e7397]"><strong>Category:</strong> {{ complaint.category }}</p>
-                            <p class="text-[#4e7397]"><strong>Complaint:</strong> {{ complaint.complaint_text }}</p>
-                            <p class="text-[#4e7397]"><strong>Created At:</strong> {{ complaint.created_at }}</p>
-                            <p class="text-[#4e7397]"><strong>Complained Against:</strong> {{ complaint.complained_against.email }}</p>
-                            <p class="text-[#4e7397]"><strong>Ticket Status:</strong> {{ complaint.complaint_status }}</p>
-                            <p class="text-[#4e7397] hidden closing-comment">
-                                <strong>Closing Comment:</strong> {{ complaint.closing_comment }}
-                            </p>
-                        </div>
-                    </a>
+                    <div class="ticket-item"> <!-- Changed from <a> to <div> as wrapper -->
+                        <a href="{% url 'ticket_details' ticket_id=complaint.id %}" class="block">
+                            <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                                <h3 class="text-lg font-semibold text-[#0e141b]">Ticket #{{ complaint.id }}</h3>
+                                <p class="text-[#4e7397]"><strong>Category:</strong> {{ complaint.category }}</p>
+                                <p class="text-[#4e7397]"><strong>Complaint:</strong> {{ complaint.complaint_text }}</p>
+                                <p class="text-[#4e7397] ticket-date" data-date="{{ complaint.created_at|date:'Y-m-d' }}">
+                                    <strong>Created At:</strong> {{ complaint.created_at }}
+                                </p>
+                                <p class="text-[#4e7397]"><strong>Complained Against:</strong> {{ complaint.complained_against.email }}</p>
+                                <p class="text-[#4e7397] ticket-status"><strong>Ticket Status:</strong> {{ complaint.complaint_status }}</p>
+                                <p class="text-[#4e7397] hidden closing-comment">
+                                    <strong>Closing Comment:</strong> {{ complaint.closing_comment }}
+                                </p>
+                            </div>
+                        </a>
+                    </div>
                     {% endfor %}
+                    
+                    <div id="no-results" class="hidden bg-white p-8 text-center rounded-xl">
+                        <p class="text-lg text-gray-500">No tickets match your filters</p>
+                    </div>
                 </div>
 
                 <!-- Helpdesk Personnel Details -->
@@ -100,49 +108,53 @@
             const statusFilter = document.getElementById('status-filter');
             const dateFilter = document.getElementById('date-filter');
             const ticketsContainer = document.getElementById('tickets-container');
-            
+            const noResults = document.getElementById('no-results');
+        
             function filterTickets() {
                 const statusValue = statusFilter.value;
                 const dateValue = dateFilter.value;
-                const tickets = ticketsContainer.querySelectorAll('a');
+                const tickets = ticketsContainer.querySelectorAll('.ticket-item');
+                
+                let visibleCount = 0;
                 
                 tickets.forEach(ticket => {
-                    const status = ticket.querySelector('p:nth-last-child(2)').textContent.replace('Ticket Status: ', '').trim();
-                    const date = ticket.querySelector('p:nth-last-child(4)').textContent.replace('Created At: ', '').trim();
-                    const ticketDate = new Date(date.split(' ')[0]);
-                    const filterDate = dateValue ? new Date(dateValue) : null;
-                    const closingComment = ticket.querySelector('.closing-comment');
+                    const status = ticket.querySelector('.ticket-status').textContent
+                        .replace('Ticket Status: ', '')
+                        .trim();
+                        
+                    // Get the date from data-date attribute (YYYY-MM-DD format)
+                    const ticketDate = ticket.querySelector('.ticket-date').dataset.date;
                     
-                    // Show/hide closing comment based on status
-                    if (status === 'Closed') {
-                        closingComment.classList.remove('hidden');
-                    } else {
-                        closingComment.classList.add('hidden');
-                    }
+                    // Status filter condition
+                    const statusMatch = statusValue === 'All' || status === statusValue;
                     
-                    // Filter logic
-                    let statusMatch = true;
-                    let dateMatch = true;
-                    
-                    if (statusValue !== 'All') {
-                        statusMatch = status === statusValue;
-                    }
-                    
-                    if (filterDate) {
-                        dateMatch = ticketDate.toDateString() === filterDate.toDateString();
-                    }
+                    // Date filter condition
+                    const dateMatch = !dateValue || ticketDate === dateValue;
                     
                     if (statusMatch && dateMatch) {
                         ticket.style.display = 'block';
+                        visibleCount++;
                     } else {
                         ticket.style.display = 'none';
                     }
                 });
+                
+                // Toggle no results message
+                noResults.style.display = visibleCount ? 'none' : 'block';
+                
+                console.log('Filtering results:', {
+                    statusFilter: statusValue,
+                    dateFilter: dateValue,
+                    visibleTickets: visibleCount
+                });
             }
-            
+        
+            // Event listeners
             statusFilter.addEventListener('change', filterTickets);
             dateFilter.addEventListener('change', filterTickets);
-            filterTickets(); // Initialize
+            
+            // Initialize filters
+            filterTickets();
         });
     </script>
 </body>
