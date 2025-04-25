@@ -296,6 +296,26 @@ def custom_logout(request):
 # Customer
 
 @login_required
+def customer_profile(request) :
+    user = request.user #get currently logged in user
+
+    context = {
+        'user_id' : user.pk,
+        'email' : user.email,
+        'first_name' : user.first_name,
+        'last_name' : user.last_name,
+        'phone_number' : user.phone_number,
+        'address' : user.address,
+        'city' : user.city,
+        'state' : user.state,
+        'country' : user.country,
+        'zip_code' : user.zip_code,
+        #make sure user mode in model.py has these fields
+
+    }
+    return render(request, 'CustomerProfile.html', context)
+
+@login_required
 def top_up_wallet(request):
     if request.method == 'POST':
         top_up_amount = request.POST.get('top_up_amount', 0)
@@ -325,6 +345,27 @@ def contact_support(request):
     return render(request, 'contact.html')
 
 # Merchant
+
+@login_required
+def merchant_profile(request) :
+    user = request.user #get currently logged in user
+
+    context = {
+        'user_id' : user.pk,
+        'email' : user.email,
+        'first_name' : user.first_name,
+        'last_name' : user.last_name,
+        'phone_number' : user.phone_number,
+        'address' : user.address,
+        'city' : user.city,
+        'state' : user.state,
+        'country' : user.country,
+        'zip_code' : user.zip_code,
+        #make sure user mode in model.py has these fields
+
+    }
+    return render(request, 'MerchantProfile.html', context)
+
 def merchant_transactions_view(request):
     transactions = MerchantTransaction.objects.all()  # Fetch all transactions
     return render(request, 'transactions.html', {'transactions': transactions})
@@ -601,6 +642,26 @@ def ticket_details(request, ticket_id):
 
     return render(request, 'ticket_details.html', context)
 
+@login_required
+def helpdesk_profile(request) :
+    user = request.user #get currently logged in user
+
+    context = {
+        'user_id' : user.pk,
+        'email' : user.email,
+        'first_name' : user.first_name,
+        'last_name' : user.last_name,
+        'phone_number' : user.phone_number,
+        'address' : user.address,
+        'city' : user.city,
+        'state' : user.state,
+        'country' : user.country,
+        'zip_code' : user.zip_code,
+        #make sure user mode in model.py has these fields
+
+    }
+    return render(request, 'HelpdeskProfile.html', context)
+
 
 @login_required
 def live_chat(request):
@@ -609,6 +670,7 @@ def live_chat(request):
 @login_required
 def helpdesk_settings(request):
     return render(request, 'HelpdeskSettings.html')
+
 
 @login_required
 def suspend_customer(request):

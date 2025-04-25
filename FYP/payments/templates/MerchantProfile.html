@@ -225,113 +225,106 @@
           </div>          
           </div>
         </header>
-        
-        <!-- Main Content -->
-        <main class="flex-1 p-6">
 
-          <h2 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em]">All Transactions</h2>
-          
-          <div class="relative mt-4">
-              <button onclick="toggleDropdown()" class="rounded-xl h-10 px-4 bg-[#1980e6] text-white text-sm font-bold">Filter</button>
-              <div id="filterDropdown" class="absolute bg-white shadow-md rounded-xl mt-2 p-4 hidden">
-                  <select id="statusFilter" class="border p-3 rounded-md w-80" onchange="applyFilter()">
-                      <option value="">Filter by Status</option>
-                      <option value="success" {% if request.GET.status == 'success' %}selected{% endif %}>Success</option>
-                      <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
-                      <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Failed</option>
-                  </select>
-                  <button onclick="applyFilter()" class="mt-2 w-full bg-[#1980e6] text-white p-2 rounded-md">Apply</button>
-              </div>
-          </div>
+    <!-- Main Section -->
+    <div class="flex flex-1">
 
-                    <!-- Summary Cards -->
-                <div class="cards">
-                  <div class="card">
-                      <h2>Total Balance</h2>
-                      <p id="totalBalance">${{ total_balance|floatformat:2 }}</p>
-                  </div>
-                  <div class="card">
-                      <h2>Successful Transactions</h2>
-                      <p id="successCount">{{ success_count }}</p>
-                  </div>
-                  <div class="card">
-                      <h2>Pending Transactions</h2>
-                      <p id="pendingCount">{{ pending_count }}</p>
-                  </div>
-              </div>
-              <div class="table-container">
-                <h2>Recent Transactions</h2>
-                <table border="1">
-                  <tr>
-                      <th>ID</th>
-                      <th>Customer Email</th>
-                      <th>Customer Name</th>
-                      <th>Transaction Number</th>
-                      <th>Amount</th>
-                      <th>Payment Method</th>
-                      <th>Timestamp</th>
-                      <th>Status</th>
-                  </tr>
-                  {% for transaction in transactions %}
-                  <tr>
-                      <td>{{ transaction.id }}</td>
-                      <td>{{ transaction.customer_email }}</td>
-                      <td>{{ transaction.customer_first_name }} {{ transaction.customer_last_name }}</td>
-                      <td>{{ transaction.transaction_number }}</td>
-                      <td>{{ transaction.amount_sent }}</td>
-                      <td>{{ transaction.payment_method }}</td>
-                      <td>{{ transaction.created_at }}</td>
-                      <td>
-                        {% if transaction.status == 'success' %}
-                            <span style="color: green;">Success</span>
-                        {% elif transaction.status == 'failed' %}
-                            <span style="color: red;">Failed</span>
-                        {% else %}
-                            <span style="color: orange;">Pending</span>
-                        {% endif %}
-                    </td>
-                  </tr>
-                  {% empty %}
-                  <tr>
-                      <td colspan="7">No transactions found</td>
-                  </tr>
-                  {% endfor %}
-              </table>
-              
+      <!-- Merchant User Details -->
+      <main class="flex-1 p-8">
+        <h2 class="text-3xl font-bold text-slate-900 mb-6">Merchant User Details</h2>
+
+        <div class="bg-white rounded-xl shadow p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-slate-700">
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="badge-check" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg">Merchant User ID</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ user_id }}</p>
             </div>
 
-        </main>
-        <div class="flex px-4 py-3 justify-center">
-          <a href="{% url 'contact_support' %}?dashboard=merchant" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]">
-            <span class="truncate">Contact Support</span>
-          </a>
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="mail" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Email</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ email }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">First Name</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ first_name }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Last Name</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ last_name }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="phone" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Phone Number</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ phone_number }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Address</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ address }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="building" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">City</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ city }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="map" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">State</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ state }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="globe" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Country</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ country }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="hash" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Zip Code</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ zip_code }}</p>
+            </div>
+
+          </div>
         </div>
+      </main>
     </div>
+  </div>
 
+  <script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  lucide.createIcons(); // This will render the icons
+</script>
 
-    <script>
-
-        /* When the user clicks on the button,
-        toggle between hiding and showing the dropdown content */
-        function myFunction() {
-          document.getElementById("myDropdown").classList.toggle("show");
-        }
-        
-        function toggleDropdown() {
-          const dropdown = document.getElementById('filterDropdown');
-          dropdown.classList.toggle('hidden'); // Toggle the 'hidden' class to show/hide dropdown
-      }
-    
-      function applyFilter() {
-          const status = document.getElementById('statusFilter').value; // Get selected status value
-          let url = window.location.href.split('?')[0]; // Get the base URL without query params
-      
-          // Check if the filter is selected and add it to the URL
-          if (status) {
-              url += `?status=${status}`;
-          }
-          window.location.href = url; // Redirect to the updated URL to apply the filter
-      }
-        </script>
 </body>
 </html>
