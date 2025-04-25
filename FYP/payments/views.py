@@ -5,7 +5,7 @@ import logging
 import random
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
@@ -23,6 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import User
 from .login import authenticate_user
+from .forget_password import forgot_password
 from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -31,6 +32,7 @@ from django.conf import settings
 from django.urls import reverse
 logger = logging.getLogger(__name__)
 
+User = get_user_model()
 
 def create_user(request):
 
@@ -130,6 +132,59 @@ def verify_otp(request):
             return render(request, 'verify_otp.html')
 
     return render(request, 'verify_otp.html')  # Ensure it always returns an HttpResponse
+
+def verify_otp_forgot(request):
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp')
+        actual_otp = str(request.session.get('fp_otp'))
+        timestamp = request.session.get('fp_otp_created_at')
+
+        # Optional: expire OTP after 5 mins
+        if timestamp and (datetime.now().timestamp() - timestamp > 300):
+            messages.error(request, "OTP expired. Please request again.")
+            return redirect('forgot_password')
+
+        if entered_otp == actual_otp:
+            return redirect('reset_password')  # New password form
+        else:
+            messages.error(request, "Incorrect OTP.")
+            return render(request, 'verifyOTPForResetPassword.html')
+
+    return render(request, 'verifyOTPForResetPassword.html')
+
+
+def reset_password(request):
+    email = request.session.get('fp_email')
+
+    if request.method == 'POST':
+        new_password1 = request.POST.get('new_password1')
+        new_password2 = request.POST.get('new_password2')
+
+        if new_password1 != new_password2:
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'resetPassword.html')
+
+        try:
+            user = User.objects.get(email=email)
+
+            # Hash the password explicitly here
+            hashed_password = make_password(new_password1)
+            logging.debug(f"Hashed password for reset: {hashed_password}")  # Add logging here
+
+            user.password = hashed_password
+            user.save()
+
+            # Clear session OTP data
+            request.session.pop('fp_email', None)
+            request.session.pop('fp_otp', None)
+            request.session.pop('fp_otp_created_at', None)
+
+            messages.success(request, "Password reset successful.")
+            return redirect('login')
+        except User.DoesNotExist:
+            messages.error(request, "Unexpected error. Please try again.")
+
+    return render(request, 'resetPassword.html')
 
 
 

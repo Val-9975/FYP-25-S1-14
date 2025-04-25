@@ -53,6 +53,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # Default
+]
+
 CSRF_COOKIE_SECURE = True  # Set to True if you're using HTTPS
 CSRF_COOKIE_HTTPONLY = True  # This ensures the CSRF cookie is not accessible via JavaScript
 
