@@ -6,6 +6,7 @@ urlpatterns = [
     path('create-user/', views.create_user, name='create_user'),
     path('pay/', views.process_payment, name='process_payment'),
     path('my-transactions/', views.user_transactions, name='user_transactions'),
+    path('change-password/', views.change_passwordProfile, name='change_passwordProfile'),
     # Add the customer dashboard URL:
     path('dashboard/customer/', views.customer_dashboard, name='customer_dashboard'),
     path('dashboard/customer/viewPurchaseUI/', views.view_purchase, name='view_purchase'),
