@@ -163,6 +163,8 @@ class UserAccountStatus(models.Model):
     zip_code = models.CharField(max_length=20, null=True, blank=True)
     role_id = models.IntegerField()
     account_status = models.CharField(max_length=20, default='Available')
+    failed_attempts = models.IntegerField(default=0, null=True, blank=True)
+    last_failed_attempt = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = 'user_account_status'

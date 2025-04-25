@@ -27,6 +27,8 @@ from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from datetime import datetime, timedelta
+from django.utils.timezone import now
 logger = logging.getLogger(__name__)
 
 
@@ -125,28 +127,59 @@ def custom_login(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
+        lockout_duration = timedelta(minutes=1)
+
+        try:
+            account_status = UserAccountStatus.objects.get(email=email)
+        except UserAccountStatus.DoesNotExist:
+            account_status = None
+
+        # If account record doesn't exist, return early
+        if not account_status:
+            messages.error(request, "Invalid login credentials.")
+            return render(request, "login.html")
+
+        # Lockout check
+        if account_status.failed_attempts >= 3:
+            if account_status.last_failed_attempt and now() - account_status.last_failed_attempt < lockout_duration:
+                messages.error(request, "Account locked due to multiple failed attempts. Try again after 10 minutes.")
+                return render(request, "login.html")
+            else:
+                account_status.failed_attempts = 0
+                account_status.save(update_fields=['failed_attempts'])
+
+        # Check if the user's account is suspended
         user = authenticate(request, username=email, password=password)
         if user is not None:
-            try:
-                # Check if the user's account is suspended
-                account_status = UserAccountStatus.objects.get(email=email)
-                if account_status.account_status == "Suspended":
-                    messages.error(request, "Your account is under review and has been temporarily suspended")
-                    return render(request, "login.html")
-            except UserAccountStatus.DoesNotExist:
-                pass
+            if account_status.account_status == "Suspended":
+                messages.error(request, "Your account is under review and has been temporarily suspended")
+                return render(request, "login.html")
 
-            # Generate an OTP and store it (along with the credentials) in the session
+            account_status.failed_attempts = 0
+            account_status.last_failed_attempt = None
+            account_status.save(update_fields=['failed_attempts', 'last_failed_attempt'])
+
             otp = random.randint(100000, 999999)
             request.session['otp'] = otp
             request.session['email'] = email
             request.session['password'] = password
-            print(f"Your OTP is: {otp}")  # For development/testing
+            print(f"Your OTP is: {otp}")
 
-            # Redirect to the OTP verification page
+            request.session.modified = True
+            request.session.save()
             return redirect('verify_otp')
+
         else:
-            messages.error(request, "Invalid login credentials")
+            account_status.failed_attempts += 1
+            account_status.last_failed_attempt = now()
+            account_status.save(update_fields=['failed_attempts', 'last_failed_attempt'])
+
+            attempts_left = max(0, 3 - account_status.failed_attempts)
+            if attempts_left == 0:
+                messages.error(request, "Too many failed attempts. Account locked for 10 minutes.")
+            else:
+                messages.error(request, f"Invalid login credentials. {attempts_left} attempt(s) left.")
+
     return render(request, "login.html")
 
 
@@ -506,9 +539,28 @@ def complaints_view(request):
 # Admin
 @login_required
 def sysadmin_view_transactions(request):
-    # Retrieve all purchase transactions (latest first)
     transactions = MerchantTransaction.objects.all().order_by('-created_at')
-    return render(request, 'SysAdminViewTransaction.html', {'transactions': transactions})
+
+    # Mark transactions as suspicious if there are 3+ within 30 seconds by same customer
+    suspicious_customers = set()
+    grouped_by_customer = {}
+
+    for t in transactions:
+        grouped_by_customer.setdefault(t.customer_email, []).append(t)
+
+    suspicious_ids = set()
+    for email, txns in grouped_by_customer.items():
+        txns_sorted = sorted(txns, key=lambda x: x.created_at)
+        for i in range(len(txns_sorted) - 2):
+            t1, t2, t3 = txns_sorted[i:i+3]
+            if (t3.created_at - t1.created_at).total_seconds() <= 30:
+                suspicious_ids.update([t1.id, t2.id, t3.id])
+                suspicious_customers.add(email)
+
+    return render(request, 'SysAdminViewTransaction.html', {
+        'transactions': transactions,
+        'suspicious_ids': suspicious_ids
+    })
 
 def sysadmin_settings(request):
     return render(request, 'SysAdminSecuritySettings.html')
