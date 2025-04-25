@@ -156,7 +156,14 @@
                 <option value="" disabled selected>Select Role</option>
                 <option value="1">Customer</option>
                 <option value="2">Merchant</option>
+                <option value="3">System Admin</option>
+                <option value="4">HelpDesk Personnel</option>
             </select>
+
+            <!-- Add this inside your form, below the role select -->
+            <input type="password" name="admin_code" id="admin_code" placeholder="Enter Admin Code"
+            class="input-field" style="display:none;" />
+
             <!-- Agree checkbox -->
             <div class="checkbox-group">
                 <label>
@@ -187,5 +194,21 @@
         }
         return true;
     }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const roleDropdown = document.querySelector('select[name="role"]');
+        const adminCodeField = document.getElementById('admin_code');
+
+        roleDropdown.addEventListener('change', function () {
+            const selectedRole = parseInt(this.value);
+            if (selectedRole === 3 || selectedRole === 4) {
+                adminCodeField.style.display = 'block';
+                adminCodeField.required = true;
+            } else {
+                adminCodeField.style.display = 'none';
+                adminCodeField.required = false;
+            }
+        });
+    });
 </script>
 </html>

@@ -93,11 +93,11 @@ WSGI_APPLICATION = 'custom_gateway.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'db',           # Replace with your MySQL database name
+        'NAME': 'gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
-        'PASSWORD': 'password',              # Replace with your MySQL password
+        'PASSWORD': '1234',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
-        'PORT': '3306',              # Default MySQL port
+        'PORT': '3307',              # Default MySQL port
     }
 }
 
@@ -109,7 +109,7 @@ EMAIL_HOST_USER = 'safepay2025@gmail.com'  # A dedicated sender account
 EMAIL_HOST_PASSWORD = 'jwdg hwje yioh tqyb'        # App password or SMTP password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
+ADMIN_ROLE_CREATION_CODE = 'SECURE2025'
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
