@@ -4,6 +4,7 @@ import time
 import logging
 import random
 import datetime
+import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -27,6 +28,7 @@ from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
 from .models import SavedPaymentMethod
 from django.views.decorators.http import require_POST
+
 
 logger = logging.getLogger(__name__)
 
@@ -353,6 +355,11 @@ def process_money_transfer(request):
         if not is_valid_card(card_number):
             messages.error(request, "Invalid card number.")
             return redirect('customer_dashboard')
+        
+        if not match_card_brand(card_number, payment_method):
+            messages.error(request, f"The card number does not match the selected {payment_method} format.")
+            return redirect('customer_dashboard')
+
 
         # Check expiry format and expiration
         import re
@@ -428,7 +435,21 @@ def process_money_transfer(request):
         return redirect('view_purchase')
 
 
-# views.py - Add this new view
+
+def match_card_brand(card_number, brand):
+    card_number = card_number.replace(" ", "")
+    if brand == "VISA":
+        # VISA starts with 4 and is 16 in length
+        return bool(re.match(r"^4\d{15}$", card_number))
+    elif brand == "MASTERCARD":
+        # MasterCard starts with 51-55 or 2221-2720 and is 16 in length
+        return bool(re.match(r"^(5[1-5]\d{14}|2(2[2-9]\d{13}|[3-6]\d{14}|7[01]\d{13}|720\d{13}))$", card_number))
+    else:
+        return False
+
+
+
+
 @login_required
 def get_saved_payment_methods(request):
     methods = SavedPaymentMethod.objects.filter(user=request.user).values(
