@@ -267,15 +267,23 @@
                   </span>
                   <input name="cvv" type="text" placeholder="3 digits" oninput="storeInLocalStorage()" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base text-[#0e141b] placeholder:text-[#4e7397] focus:outline-0 focus:ring-0 focus:border-[#d0dbe7]" />
                 </label>
+                <!--
                 {% if messages %}
-                    <div class="messages">
-                        {% for message in messages %}
-                            {% if message.tags == 'error' %}
-                                <div class="alert alert-danger text-red-600 mt-2">{{ message }}</div>
-                            {% endif %}
-                        {% endfor %}
+                <div class="messages">
+                  {% for message in messages %}
+                    <div 
+                      class="mt-2 text-sm p-2 rounded 
+                             {% if message.tags == 'error' %} bg-red-100 text-red-700 
+                             {% elif message.tags == 'success' %} bg-green-100 text-green-700 
+                             {% elif message.tags == 'info' %} bg-blue-100 text-blue-700 
+                             {% else %} bg-gray-100 text-gray-700 
+                             {% endif %}">
+                      {{ message }}
                     </div>
-                {% endif %}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              -->
                 <!-- Wallet Section (Shown for SafePay Wallet) -->
                 <div id="walletSection" class="flex flex-col min-w-40 flex-1 hidden">
                   <span class="mb-1 text-[#0e141b] text-sm font-semibold">Wallet Balance</span>
@@ -678,5 +686,36 @@
 
     <span id="delete-card-url-template" data-url="{% url 'delete_saved_card' 0 %}"></span>
   
+    <div id="toast" class="fixed top-4 right-4 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-lg hidden transition-opacity duration-300">
+      <span id="toast-message"></span>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'info' %}
+                    showToast("{{ message|escapejs }}");
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    });
+    
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+    
+        toastMessage.textContent = message;
+        toast.classList.remove('hidden');
+        toast.classList.add('opacity-100');
+    
+        setTimeout(() => {
+            toast.classList.add('hidden');
+            toast.classList.remove('opacity-100');
+        }, 4000); 
+    }
+    </script>
+    
+
   </body>
 </html>

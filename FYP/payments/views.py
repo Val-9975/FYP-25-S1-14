@@ -395,24 +395,31 @@ def process_money_transfer(request):
                 status='pending'
             )
 
-            # If not using saved card and user checked "save"
+            # New Save Card Logic (No duplicate save)
             if save_payment_method and payment_method in ['VISA', 'MASTERCARD'] and not saved_card_id:
                 try:
-                    token = f"tok_{uuid.uuid4().hex}"
-                    TokenVault.create_entry(token=token, card_number=card_number)
+                    existing_methods = SavedPaymentMethod.objects.filter(user=request.user)
 
-                    expiry_month, expiry_year = map(int, expiry_date.split('/'))
-                    expiry_year += 2000  # Convert YY to YYYY
+                    for method in existing_methods:
+                        vault_entry = TokenVault.objects.get(token=method.token)
+                        existing_card_number = vault_entry.get_card_number()
+                        if existing_card_number == card_number:
+                            logger.info("Card already saved. Skipping save.")
+                            messages.info(request, "This card is already saved.")
+                            break
+                    else:
+                        # No duplicate, so save
+                        token = f"tok_{uuid.uuid4().hex}"
+                        TokenVault.create_entry(token=token, card_number=card_number)
 
-                    SavedPaymentMethod.objects.create(
-                        user=request.user,
-                        payment_type=payment_method,
-                        last_four_digits=card_number[-4:],
-                        token=token
-                    )
+                        SavedPaymentMethod.objects.create(
+                            user=request.user,
+                            payment_type=payment_method,
+                            last_four_digits=card_number[-4:],
+                            token=token
+                        )
                 except Exception as e:
                     logger.error(f"Failed to save payment method: {str(e)}")
-
         # Launch async processing
         print(f"DEBUG: Starting thread for transaction {transaction.id}", flush=True)
         thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
