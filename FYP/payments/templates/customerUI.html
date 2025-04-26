@@ -238,13 +238,13 @@
                   <select name="payment_method" id="paymentMethod" oninput="storeInLocalStorage()" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base text-[#0e141b] placeholder:text-[#4e7397] focus:outline-0 focus:ring-0 focus:border-[#d0dbe7]">
                     <option value="">Select Payment Method</option>
                     <option value="VISA">VISA</option>
-                    <option value="CREDIT CARD">CREDIT CARD</option>
+                    <option value="MASTERCARD">Mastercard</option>
                     <option value="SAFEPAY WALLET">SafePay Wallet</option>
                   </select>
                 </label>
 
                 
-                <!-- Card Number Field (Shown for VISA/CREDIT CARD) -->
+                <!-- Card Number Field (Shown for VISA/MASTERCARD) -->
                 <label id="cardNumberLabel" class="flex flex-col min-w-40 flex-1 hidden">
                   <span class="mb-1 text-[#0e141b] text-sm font-semibold">
                     Bank Card Number <span class="text-red-500">*</span>
@@ -260,7 +260,7 @@
                   <input name="expiry_date" type="text" placeholder="MM/YY" pattern="\d{2}/\d{2}" oninput="storeInLocalStorage()" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base text-[#0e141b] placeholder:text-[#4e7397] focus:outline-0 focus:ring-0 focus:border-[#d0dbe7]" />
                 </label>
 
-                <!-- CVV Field (Shown for VISA/CREDIT CARD) -->
+                <!-- CVV Field (Shown for VISA/Mastercard) -->
                 <label id="cvvLabel" class="flex flex-col min-w-40 flex-1 hidden">
                   <span class="mb-1 text-[#0e141b] text-sm font-semibold">
                     CVV <span class="text-red-500">*</span>

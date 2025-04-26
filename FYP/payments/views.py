@@ -396,7 +396,7 @@ def process_money_transfer(request):
             )
 
             # If not using saved card and user checked "save"
-            if save_payment_method and payment_method in ['VISA', 'CREDIT CARD'] and not saved_card_id:
+            if save_payment_method and payment_method in ['VISA', 'MASTERCARD'] and not saved_card_id:
                 try:
                     token = f"tok_{uuid.uuid4().hex}"
                     TokenVault.create_entry(token=token, card_number=card_number)
