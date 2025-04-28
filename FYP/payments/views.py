@@ -3,6 +3,7 @@ import threading
 import time
 import logging
 import random
+import re
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
@@ -34,6 +35,23 @@ logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
+def is_strong_password(password):
+    """
+    Returns (True, "") if password is strong,
+    else returns (False, "error message")
+    """
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long."
+    if not re.search(r"[A-Z]", password):
+        return False, "Password must contain at least one uppercase letter (Eg. A,B,C...)."
+    if not re.search(r"[a-z]", password):
+        return False, "Password must contain at least one lowercase letter (Eg. a,b,c...)."
+    if not re.search(r"[0-9]", password):
+        return False, "Password must contain at least one number (Eg. 1,2,3...)."
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        return False, "Password must contain at least one special character (Eg. !,*,&...)."
+    return True, ""
+
 def create_user(request):
 
     if request.method == 'POST':
@@ -59,6 +77,18 @@ def create_user(request):
 
         # Set role_id based on user type (Customer: 1, Merchant: 2)
         role_id = request.POST.get('role')  # Get role_id from form input
+
+        # Validate Password
+        is_valid, error_message = is_strong_password(password)
+        if not is_valid:
+            messages.error(request, error_message)
+            protocol = SecurityProtocolDetail.objects.first()
+            return render(request, 'createUsers.html', {
+                'security_protocol': protocol,
+                'email': email, 'first_name': first_name, 'last_name': last_name,
+                'phone_number': phone_number, 'address': address, 'city': city,
+                'state': state, 'country': country, 'zip_code': zip_code
+            })
 
         try:
             role_id = int(role_id)  # Convert to integer
@@ -153,6 +183,9 @@ def verify_otp_forgot(request):
     return render(request, 'verifyOTPForResetPassword.html')
 
 
+from django.contrib.auth.hashers import make_password
+import logging
+
 def reset_password(request):
     email = request.session.get('fp_email')
 
@@ -163,14 +196,20 @@ def reset_password(request):
         if new_password1 != new_password2:
             messages.error(request, "Passwords do not match.")
             return render(request, 'resetPassword.html')
+        
+        #  password strength validation 
+        is_valid, error_message = is_strong_password(new_password1)
+        if not is_valid:
+            messages.error(request, error_message)
+            return redirect('reset_password')
 
         try:
-            user = User.objects.get(email=email)
-
-            # Hash the password explicitly here
+            user = User.objects.get(email=email)        
+            # Hash the password
             hashed_password = make_password(new_password1)
-            logging.debug(f"Hashed password for reset: {hashed_password}")  # Add logging here
 
+
+            # Save the hashed password to the user
             user.password = hashed_password
             user.save()
 
@@ -333,12 +372,24 @@ def change_passwordProfile(request):
 
         if not check_password(current_password, user.password):
             messages.error(request, "Current password is incorrect.")
-            return redirect('change_password')
+            return redirect('change_passwordProfile')
 
         if new_password != confirm_password:
             messages.error(request, "New password and confirm password do not match.")
-            return redirect('change_password')
+            return redirect('change_passwordProfile')
+        
+        # Check if new password is same as current password
+        if check_password(new_password, user.password):
+            messages.error(request, "New password must be different from the current password.")
+            return redirect('change_passwordProfile')
+        
+        #  password strength validation 
+        is_valid, error_message = is_strong_password(new_password)
+        if not is_valid:
+            messages.error(request, error_message)
+            return redirect('change_passwordProfile')
 
+        # If good, save new password
         user.password = make_password(new_password)
         user.save()
 
