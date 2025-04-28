@@ -124,7 +124,11 @@ def handle_login(request):
 def verify_otp(request):
     if request.method == "POST":
         redirect_page = verify_otp_user(request)  # Calls function from verifyOTP.py
-        if redirect_page:
+
+        if redirect_page == "expired":
+            return render(request, 'verify_otp.html', {'otp_expired': True})
+        
+        elif redirect_page: 
             return redirect(redirect_page)
         else:
             messages.error(request, "Invalid OTP or your account is suspended.")
