@@ -29,8 +29,12 @@ from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from .models import SavedPaymentMethod
+from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.urls import reverse
+
+
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
@@ -577,26 +581,43 @@ def process_money_transfer(request):
         merchant_email = request.POST.get('merchant_email')
         amount_str = request.POST.get('amount')
         payment_method = request.POST.get('payment_method')
-        card_number = request.POST.get('card_number', '')
+        saved_card_id = request.POST.get('saved_card_id')
         expiry_date = request.POST.get('expiry_date', '')
+        save_payment_method = request.POST.get('save_payment_method') == 'on'
+
+        card_number = ''
+        if saved_card_id:
+            try:
+                saved_card = SavedPaymentMethod.objects.get(id=saved_card_id, user=request.user)
+                vault_entry = TokenVault.objects.get(token=saved_card.token)
+                card_number = vault_entry.get_card_number()
+                payment_method = saved_card.payment_type  
+            except Exception:
+                messages.error(request, "Failed to retrieve saved card.")
+                return redirect('customer_dashboard')
+        else:
+            card_number = request.POST.get('card_number', '')
 
         # Validate card number using Luhn algorithm
         if not is_valid_card(card_number):
             messages.error(request, "Invalid card number.")
             return redirect('customer_dashboard')
+        
+        if not match_card_brand(card_number, payment_method):
+            messages.error(request, f"The card number does not match the selected {payment_method} format.")
+            return redirect('customer_dashboard')
 
-        # Check if expiry date format is MM/YY
+
+        # Check expiry format and expiration
         import re
         if not re.match(r'^\d{2}/\d{2}$', expiry_date):
             messages.error(request, "Invalid expiry date format.")
             return redirect('customer_dashboard')
-
-        #Check if card is expired
         if is_expired(expiry_date):
             messages.error(request, "Card is expired.")
             return redirect('customer_dashboard')
 
-        #Validate and parse amount
+        # Validate amount
         try:
             amount = Decimal(amount_str)
             if amount <= 0:
@@ -605,13 +626,12 @@ def process_money_transfer(request):
             messages.error(request, "Invalid amount.")
             return redirect('customer_dashboard')
 
-        #Get merchant by email
+        # Get merchant user by email
         merchant = get_object_or_404(LegacyUser, email=merchant_email, role_id=2)
-        token = f"tok_{uuid.uuid4().hex}"
         transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
         user = request.user
 
-        #Create the transaction within an atomic block
+        # Create transaction + save card if needed
         with db_transaction.atomic():
             transaction = MerchantTransaction.objects.create(
                 merchant=merchant,
@@ -629,14 +649,86 @@ def process_money_transfer(request):
                 status='pending'
             )
 
-            TokenVault.create_entry(token=token, card_number=card_number)
+            # New Save Card Logic (No duplicate save)
+            if save_payment_method and payment_method in ['VISA', 'MASTERCARD'] and not saved_card_id:
+                try:
+                    existing_methods = SavedPaymentMethod.objects.filter(user=request.user)
 
-        #Start the simulated payment processing in a background thread
+                    for method in existing_methods:
+                        vault_entry = TokenVault.objects.get(token=method.token)
+                        existing_card_number = vault_entry.get_card_number()
+                        if existing_card_number == card_number:
+                            logger.info("Card already saved. Skipping save.")
+                            messages.info(request, "This card is already saved.")
+                            break
+                    else:
+                        # No duplicate, so save
+                        token = f"tok_{uuid.uuid4().hex}"
+                        TokenVault.create_entry(token=token, card_number=card_number)
+
+                        SavedPaymentMethod.objects.create(
+                            user=request.user,
+                            payment_type=payment_method,
+                            last_four_digits=card_number[-4:],
+                            token=token
+                        )
+                except Exception as e:
+                    logger.error(f"Failed to save payment method: {str(e)}")
+        # Launch async processing
         print(f"DEBUG: Starting thread for transaction {transaction.id}", flush=True)
         thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
         thread.start()
 
         return redirect('view_purchase')
+
+
+
+def match_card_brand(card_number, brand):
+    card_number = card_number.replace(" ", "")
+    if brand == "VISA":
+        # VISA starts with 4 and is 16 in length
+        return bool(re.match(r"^4\d{15}$", card_number))
+    elif brand == "MASTERCARD":
+        # MasterCard starts with 51-55 or 2221-2720 and is 16 in length
+        return bool(re.match(r"^(5[1-5]\d{14}|2(2[2-9]\d{13}|[3-6]\d{14}|7[01]\d{13}|720\d{13}))$", card_number))
+    else:
+        return False
+
+
+
+
+@login_required
+def get_saved_payment_methods(request):
+    methods = SavedPaymentMethod.objects.filter(user=request.user).values(
+        'id',
+        'payment_type',
+        'last_four_digits'
+    )
+    
+    formatted_methods = []
+    for method in methods:
+        formatted_methods.append({
+            'id': method['id'],
+            'display': f"{method['payment_type']} ending in {method['last_four_digits']}"
+        })
+    
+    return JsonResponse({'methods': formatted_methods})
+
+@login_required
+def get_saved_card_detail(request, card_id):
+    try:
+        saved_card = SavedPaymentMethod.objects.get(id=card_id, user=request.user)
+        token = saved_card.token
+        vault_entry = TokenVault.objects.get(token=token)
+        card_number = vault_entry.get_card_number()
+
+        return JsonResponse({
+            'masked_number': f"************{card_number[-4:]}",
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
 
 
 # Bank Authorization
@@ -723,6 +815,7 @@ def sysadmin_view_transactions(request):
     transactions = MerchantTransaction.objects.all().order_by('-created_at')
     return render(request, 'SysAdminViewTransaction.html', {'transactions': transactions})
 
+
 def sysadmin_settings(request):
     return render(request, 'SysAdminSecuritySettings.html')
 
@@ -802,7 +895,7 @@ def ticket_details(request, ticket_id):
         form = TicketUpdateForm(request.POST, instance=ticket)
         if form.is_valid():
             form.save()
-            return redirect('view_tickets')  
+            return redirect('ticket_details.html', ticket_id=ticket.id)
     else:
         # Display the form with the current ticket data
         form = TicketUpdateForm(instance=ticket)
@@ -814,7 +907,6 @@ def ticket_details(request, ticket_id):
 
     return render(request, 'ticket_details.html', context)
 
-@login_required
 def helpdesk_profile(request) :
     user = request.user #get currently logged in user
 
@@ -842,7 +934,6 @@ def live_chat(request):
 @login_required
 def helpdesk_settings(request):
     return render(request, 'HelpdeskSettings.html')
-
 
 @login_required
 def suspend_customer(request):
@@ -910,3 +1001,13 @@ def update_user_status(request):
 @login_required
 def test(request):
     return render(request, 'Something.html')
+
+@login_required
+@require_POST
+def delete_saved_card(request, card_id):
+    try:
+        card = SavedPaymentMethod.objects.get(id=card_id, user=request.user)
+        card.delete()
+        return JsonResponse({'status': 'success'})
+    except SavedPaymentMethod.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Card not found'}, status=404)

@@ -23,8 +23,7 @@ class Transaction(models.Model):
     def __str__(self):
         return self.transaction_id
 
-FERNET_KEY = Fernet.generate_key() 
-fernet = Fernet(FERNET_KEY)
+fernet = settings.FERNET
 
 class TokenVault(models.Model):
     token = models.CharField(max_length=36, unique=True)  # Matches Transaction.token
@@ -177,7 +176,34 @@ class UserAccountStatus(models.Model):
     class Meta:
         db_table = 'user_account_status'
         managed = False  
+        
 
+class SavedPaymentMethod(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='saved_payment_methods'
+    )
+    payment_type = models.CharField(max_length=20, choices=[
+        ('VISA', 'VISA'),
+        ('MASTERCARD', 'MasterCard')
+    ])
+    last_four_digits = models.CharField(max_length=4)
+    token = models.CharField(max_length=255)  # Reference to encrypted data in TokenVault
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_default = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'user_payment_methods'
+        ordering = ['-is_default', '-created_at']
+
+    def __str__(self):
+        return f"{self.get_payment_type_display()} ending in {self.last_four_digits}"
+
+    @property
+    def masked_number(self):
+        return f"************{self.last_four_digits}"
+    
 class SecurityProtocolDetail(models.Model):
     content = models.TextField()
     updated_at = models.DateTimeField(auto_now=True)

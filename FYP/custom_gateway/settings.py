@@ -14,6 +14,17 @@ import os
 from pathlib import Path
 from cryptography.fernet import Fernet
 
+
+FERNET_SECRET_KEY = os.getenv('FERNET_SECRET_KEY')
+if not FERNET_SECRET_KEY:
+    raise ValueError("Missing FERNET_SECRET_KEY in environment variables")
+
+FERNET = Fernet(FERNET_SECRET_KEY.encode())
+
+FERNET_KEY = b'S5nHJdx9p6lKGqtXEKWIfHOF_jeab0Kr8h5fKrKufKw='
+FERNET = Fernet(FERNET_KEY)
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -99,9 +110,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
-        'PASSWORD': '1234',              # Replace with your MySQL password
+        'PASSWORD': '151515',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
-        'PORT': '3307',              # Default MySQL port
+        'PORT': '3306',              # Default MySQL port
     }
 }
 
@@ -114,6 +125,7 @@ EMAIL_HOST_PASSWORD = 'jwdg hwje yioh tqyb'        # App password or SMTP passwo
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 ADMIN_ROLE_CREATION_CODE = 'SECURE2025'
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

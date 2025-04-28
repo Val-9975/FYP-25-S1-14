@@ -6,6 +6,14 @@
     <title>Customer Dashboard</title>
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+      .disabled-style {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: 0.5;
+      }
+    </style>
   </head>
   <body>
     <div class="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
@@ -191,7 +199,40 @@
                 amountInput.addEventListener('input', calculateTotalCost);
                 currencySelect.addEventListener('change', calculateTotalCost);
               </script>
-              
+
+              <!-- Saved Cards Section -->
+              <div id="savedCardSection" class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                <label class="text-[#0e141b] text-sm font-semibold mb-1">Use Saved Card <span class="text-red-500">*</span></label>
+                <p class="text-sm text-[#4e7397] italic mb-1">
+                  You can either use a saved card (and enter CVV and Expiry below) OR enter a new card.
+                </p>
+                <select id="saved_cards" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base">
+                  <option value="">-- Select Saved Card --</option>
+                  <!-- options will be added via JS -->
+                </select>
+                <input type="hidden" name="saved_card_id" id="saved_card_id" value="">
+                <p class="text-xs text-gray-500 italic">
+                  Select a saved card and click "Remove" to delete it from your account.
+                </p>
+                <button 
+                  type="button" 
+                  onclick="deleteSelectedCard()" 
+                  class="flex items-center gap-1 px-3 py-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Remove Saved Card
+                </button>
+                
+              </div>
+
+              <!-- OR Divider -->
+              <div class="flex items-center my-3">
+                <hr class="flex-grow border-t border-gray-300">
+                <span class="mx-2 text-gray-400 text-sm italic">or</span>
+                <hr class="flex-grow border-t border-gray-300">
+              </div>
+                            
               <!-- Payment Method, Card Number, CVV & Wallet Section -->
               <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <!-- Payment Method Select (Required) -->
@@ -202,11 +243,13 @@
                   <select name="payment_method" id="paymentMethod" oninput="storeInLocalStorage()" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base text-[#0e141b] placeholder:text-[#4e7397] focus:outline-0 focus:ring-0 focus:border-[#d0dbe7]">
                     <option value="">Select Payment Method</option>
                     <option value="VISA">VISA</option>
-                    <option value="CREDIT CARD">CREDIT CARD</option>
+                    <option value="MASTERCARD">Mastercard</option>
                     <option value="SAFEPAY WALLET">SafePay Wallet</option>
                   </select>
                 </label>
-                <!-- Card Number Field (Shown for VISA/CREDIT CARD) -->
+
+                
+                <!-- Card Number Field (Shown for VISA/MASTERCARD) -->
                 <label id="cardNumberLabel" class="flex flex-col min-w-40 flex-1 hidden">
                   <span class="mb-1 text-[#0e141b] text-sm font-semibold">
                     Bank Card Number <span class="text-red-500">*</span>
@@ -222,22 +265,30 @@
                   <input name="expiry_date" type="text" placeholder="MM/YY" pattern="\d{2}/\d{2}" oninput="storeInLocalStorage()" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base text-[#0e141b] placeholder:text-[#4e7397] focus:outline-0 focus:ring-0 focus:border-[#d0dbe7]" />
                 </label>
 
-                <!-- CVV Field (Shown for VISA/CREDIT CARD) -->
+                <!-- CVV Field (Shown for VISA/Mastercard) -->
                 <label id="cvvLabel" class="flex flex-col min-w-40 flex-1 hidden">
                   <span class="mb-1 text-[#0e141b] text-sm font-semibold">
                     CVV <span class="text-red-500">*</span>
                   </span>
                   <input name="cvv" type="text" placeholder="3 digits" oninput="storeInLocalStorage()" class="form-input w-full rounded-xl border border-[#d0dbe7] bg-slate-50 h-14 p-[15px] text-base text-[#0e141b] placeholder:text-[#4e7397] focus:outline-0 focus:ring-0 focus:border-[#d0dbe7]" />
                 </label>
+                
                 {% if messages %}
-                    <div class="messages">
-                        {% for message in messages %}
-                            {% if message.tags == 'error' %}
-                                <div class="alert alert-danger text-red-600 mt-2">{{ message }}</div>
-                            {% endif %}
-                        {% endfor %}
+                <div class="messages">
+                  {% for message in messages %}
+                    <div 
+                      class="mt-2 text-sm p-2 rounded 
+                             {% if message.tags == 'error' %} bg-red-100 text-red-700 
+                             {% elif message.tags == 'success' %} bg-green-100 text-green-700 
+                             {% elif message.tags == 'info' %} bg-blue-100 text-blue-700 
+                             {% else %} bg-gray-100 text-gray-700 
+                             {% endif %}">
+                      {{ message }}
                     </div>
-                {% endif %}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              
                 <!-- Wallet Section (Shown for SafePay Wallet) -->
                 <div id="walletSection" class="flex flex-col min-w-40 flex-1 hidden">
                   <span class="mb-1 text-[#0e141b] text-sm font-semibold">Wallet Balance</span>
@@ -272,20 +323,66 @@
                   paymentMethod.addEventListener('change', togglePaymentFields);
                 </script>
               </div>
-              
-              <!-- Save Payment Details Toggle (Optional) -->
+
               <div class="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between">
                 <div class="flex flex-col justify-center">
-                  <p class="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">Save Payment Details</p>
-                  <p class="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">Enable this to save your payment details for future transactions</p>
+                  <div class="flex items-center gap-2">
+                    <p class="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">
+                      Save Your Card
+                    </p>
+                    <!-- Info icon with tooltip -->
+                    <span class="group relative inline-block align-middle">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 cursor-pointer inline-block" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM9 9h2v5H9V9z" clip-rule="evenodd" />
+                      </svg>
+                      <span class="absolute z-10 hidden group-hover:block w-64 bg-white border border-gray-300 text-sm text-gray-700 p-2 rounded shadow-lg -left-1/2 mt-2 whitespace-normal">
+                        Card numbers are securely encrypted and stored. Only the last 4 digits are visible.
+                      </span>
+                    </span>
+                  </div>
+                  <p class="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2 mt-1">
+                    Enable this to save your bank card for future transactions
+                  </p>
                 </div>
+              
+              
                 <div class="shrink-0">
                   <label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#e7edf3] p-0.5">
-                    <div class="h-full w-[27px] rounded-full bg-white" style="box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px;"></div>
-                    <input type="checkbox" class="invisible absolute" />
+                    
+                    <!-- checkbox -->
+                    <input 
+                      type="checkbox" 
+                      name="save_payment_method" 
+                      class="absolute left-0 top-0 w-full h-full opacity-0 z-10 cursor-pointer"
+                      {% if has_saved_cards %}checked{% endif %}
+                    />
+              
+                    <!-- （toggle） -->
+                    <div 
+                      class="h-full w-[27px] rounded-full bg-white transform transition-transform duration-200 ease-in-out"
+                      id="toggleSwitchBall"
+                    ></div>
                   </label>
                 </div>
               </div>
+
+              <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                  const checkbox = document.querySelector('input[name="save_payment_method"]');
+                  const ball = document.getElementById('toggleSwitchBall');
+              
+                  function updateSwitch() {
+                    if (checkbox.checked) {
+                      ball.style.transform = 'translateX(20px)';
+                    } else {
+                      ball.style.transform = 'translateX(0px)';
+                    }
+                  }
+              
+                  checkbox.addEventListener('change', updateSwitch);
+                  updateSwitch(); 
+                });
+              </script>
               
               <!-- Submit Button -->
               <div class="flex px-4 py-3 justify-center">
@@ -303,6 +400,7 @@
 
       <!-- VALIDATION SCRIPT -->
       <script>
+        
         function validateForm(event) {
           const form = event.target;
           const merchantEmail = form.querySelector('input[name="merchant_email"]');
@@ -312,39 +410,19 @@
           const cardNumberInput = form.querySelector('input[name="card_number"]');
           const cvvInput = form.querySelector('input[name="cvv"]');
           const expiryDateInput = form.querySelector('input[name="expiry_date"]');
-
-          if (expiryDateInput && !/^\d{2}\/\d{2}$/.test(expiryDateInput.value)) {
-            alert("Expiry date must be in MM/YY format.");
-            event.preventDefault();
-            return false;
+          const savedCardId = document.getElementById('saved_cards').value;
+        
+          // If using saved card, only validate CVV
+          if (savedCardId) {
+            if (cvvInput && !/^\d{3}$/.test(cvvInput.value)) {
+              alert("Please enter the 3-digit CVV for your saved card.");
+              event.preventDefault();
+              return false;
+            }
+            return true; //STOP here, skip the rest
           }
-
-          const [expMonth, expYear] = expiryDateInput.value.split('/');
-
-          const month = parseInt(expMonth);
-          const year = parseInt(expYear);
-
-          if (month < 1 || month > 12) {
-            alert("Invalid expiry month.");
-            event.preventDefault();
-            return false;
-          }
-
-        const now = new Date();
-        const expiryDate = new Date(2000 + year, month - 1, 1);  // 20YY-MM
-
-        expiryDate.setMonth(expiryDate.getMonth() + 1);
-        expiryDate.setDate(0);
-        expiryDate.setHours(23, 59, 59);
-
-        if (expiryDate < now) {
-          alert("Card is expired.");
-          event.preventDefault();
-          return false;
-        }
-
-      
-          // Basic required fields check
+        
+          // Required fields
           if (
             !merchantEmail.value.trim() ||
             !amountInput.value.trim() ||
@@ -356,39 +434,51 @@
             return false;
           }
         
-          // Check if SafePay Wallet is selected
+          // Wallet balance check
           if (paymentMethod.value === "SAFEPAY WALLET") {
-            // wallet_balance is passed from your view to the template
             const walletBalance = parseFloat("{{ wallet_balance|floatformat:2 }}");
             const transactionAmount = parseFloat(amountInput.value);
-        
             if (transactionAmount > walletBalance) {
-              // Show a confirm dialog; if user clicks Cancel, block submission
               if (!confirm("Insufficient wallet balance. Please top up wallet")) {
                 event.preventDefault();
                 return false;
               }
-              // If user clicks OK, the form continues submitting so that
-              // the server can create a failed transaction record.
             }
-        
-          } else {
-            // Otherwise, validate card fields
-            if (cardNumberInput && !/^\d{16}$/.test(cardNumberInput.value)) {
-              alert("Bank card number must be 16 digits.");
-              event.preventDefault();
-              return false;
-            }
-            if (cvvInput && !/^\d{3}$/.test(cvvInput.value)) {
-              alert("CVV must be exactly 3 digits.");
-              event.preventDefault();
-              return false;
-            }
+            return true;
           }
         
-          // If we reach here, all validations pass
+          // Manually entered card: full validation
+          if (!/^\d{16}$/.test(cardNumberInput.value)) {
+            alert("Bank card number must be 16 digits.");
+            event.preventDefault();
+            return false;
+          }
+        
+          if (!/^\d{3}$/.test(cvvInput.value)) {
+            alert("CVV must be exactly 3 digits.");
+            event.preventDefault();
+            return false;
+          }
+        
+          if (!/^\d{2}\/\d{2}$/.test(expiryDateInput.value)) {
+            alert("Expiry date must be in MM/YY format.");
+            event.preventDefault();
+            return false;
+          }
+        
+          const [expMonth, expYear] = expiryDateInput.value.split('/');
+          const expiryDate = new Date(2000 + parseInt(expYear), parseInt(expMonth), 0);
+          const now = new Date();
+          if (expiryDate < now) {
+            alert("Card is expired.");
+            event.preventDefault();
+            return false;
+          }
+        
           return true;
         }
+        
+        
         
         function storeInLocalStorage() {
           const merchantEmail = document.querySelector('input[name="merchant_email"]').value;
@@ -404,24 +494,262 @@
           localStorage.setItem('card_number', cardNumber);
           localStorage.setItem('cvv', cvv);
         }
+
+
+        function loadSavedPaymentMethods() {
+          fetch("{% url 'get_saved_payment_methods' %}")
+              .then(response => response.json())
+              .then(data => {
+                  const select = document.getElementById('saved_cards');
+                  select.innerHTML = '<option value="">-- Select saved card --</option>';
+                  
+                  data.methods.forEach(method => {
+                      const option = document.createElement('option');
+                      option.value = method.id;
+                      option.textContent = method.display;
+                      select.appendChild(option);
+                  });
+                  
+                  if (data.methods.length > 0) {
+                      document.getElementById('saved_cards').classList.remove('hidden');
+                  }
+              })
+              .catch(error => {
+                  console.error('Error loading saved payment methods:', error);
+              });
+        }
+      
+         function handleSavedCardSelection() {
+          const savedCardSelect = document.getElementById('saved_cards');
+          const selectedCardId = savedCardSelect.value;
+
+          document.getElementById('saved_card_id').value = selectedCardId;
+
         
-        document.addEventListener('DOMContentLoaded', function() {
-          const storedMerchantEmail = localStorage.getItem('merchant_email');
-          const storedAmount = localStorage.getItem('amount');
-          const storedCurrency = localStorage.getItem('currency');
-          const storedPaymentMethod = localStorage.getItem('payment_method');
-          const storedCardNumber = localStorage.getItem('card_number');
-          const storedCvv = localStorage.getItem('cvv');
-          if (storedMerchantEmail) document.querySelector('input[name="merchant_email"]').value = storedMerchantEmail;
-          if (storedAmount) document.querySelector('input[name="amount"]').value = storedAmount;
-          if (storedCurrency) document.querySelector('select[name="currency"]').value = storedCurrency;
-          if (storedPaymentMethod) document.querySelector('select[name="payment_method"]').value = storedPaymentMethod;
-          if (storedCardNumber) document.querySelector('input[name="card_number"]').value = storedCardNumber;
-          if (storedCvv) document.querySelector('input[name="cvv"]').value = storedCvv;
-          calculateTotalCost();
-          togglePaymentFields();
+          const cardNumberLabel = document.getElementById('cardNumberLabel');
+          const cvvLabel = document.getElementById('cvvLabel');
+          const expiryDateLabel = document.getElementById('expiryDateLabel');
+        
+          if (selectedCardId) {
+            // If a saved card is selected, hide card number, show expiry (readonly) and CVV
+            cardNumberLabel.classList.add('hidden');
+            expiryDateLabel.classList.remove('hidden');
+            cvvLabel.classList.remove('hidden');
+
+            const expiryInput = document.querySelector('input[name="expiry_date"]');
+            if (expiryInput) {
+              expiryInput.readOnly = false; 
+              expiryInput.value = data.formatted_expiry; 
+            }
+        
+            // Fetch saved card details from your backend
+            fetch(`/payment-methods/${selectedCardId}/`)
+              .then(response => response.json())
+              .then(data => {
+                document.querySelector('input[name="card_number"]').value = data.masked_number;
+                document.querySelector('input[name="expiry_date"]').value = "";
+                document.querySelector('input[name="expiry_date"]').focus();
+                document.querySelector('input[name="cvv"]').value = "";
+                document.querySelector('input[name="cvv"]').focus();
+              })
+              .catch(error => {
+                console.error('Error loading saved card details:', error);
+              });
+          } else {
+            // If no saved card selected, show the full card input fields
+            togglePaymentFields();
+          }
+        } 
+
+        function deleteSelectedCard() {
+          const selectedCardId = document.getElementById('saved_cards').value;
+          if (!selectedCardId) {
+            alert("Please select a saved card to delete.");
+            return;
+          }
+        
+          if (!confirm("Are you sure you want to delete this saved card?")) return;
+        
+          const urlTemplate = document.getElementById('delete-card-url-template').dataset.url;
+          const deleteUrl = urlTemplate.replace('/0/', `/${selectedCardId}/`);
+        
+          console.log("Deleting card at:", deleteUrl); 
+        
+          fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              alert("Card deleted successfully.");
+              document.getElementById('saved_cards').value = '';
+              document.getElementById('saved_card_id').value = '';
+              document.getElementById('saved_cards').dispatchEvent(new Event('change'));
+              loadSavedPaymentMethods(); 
+            } else {
+              alert("Error: " + data.message);
+            }
+          })
+          .catch(error => {
+            console.error("Error deleting card:", error);
+            alert("Something went wrong.");
+          });
+        }
+        
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const storedMerchantEmail = localStorage.getItem('merchant_email');
+        const storedAmount = localStorage.getItem('amount');
+        const storedCurrency = localStorage.getItem('currency');
+        const storedPaymentMethod = localStorage.getItem('payment_method');
+        const storedCardNumber = localStorage.getItem('card_number');
+        const storedCvv = localStorage.getItem('cvv');
+        if (storedMerchantEmail) document.querySelector('input[name="merchant_email"]').value = storedMerchantEmail;
+        if (storedAmount) document.querySelector('input[name="amount"]').value = storedAmount;
+        if (storedCurrency) document.querySelector('select[name="currency"]').value = storedCurrency;
+        if (storedPaymentMethod) document.querySelector('select[name="payment_method"]').value = storedPaymentMethod;
+        if (storedCardNumber) document.querySelector('input[name="card_number"]').value = storedCardNumber;
+        if (storedCvv) document.querySelector('input[name="cvv"]').value = storedCvv;
+        calculateTotalCost();
+        togglePaymentFields();
+        // Load saved payment methods
+        loadSavedPaymentMethods();
+        document.getElementById('saved_cards').addEventListener('change', handleSavedCardSelection);
+        document.getElementById('paymentMethod').addEventListener('change', handleSavedCardSelection);
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const savedCardSelect     = document.getElementById('saved_cards');
+        const paymentMethodSelect = document.getElementById('paymentMethod');
+        const cardNumberLabel     = document.getElementById('cardNumberLabel');
+        const expiryDateLabel     = document.getElementById('expiryDateLabel');
+        const cvvLabel            = document.getElementById('cvvLabel');
+        const walletSection       = document.getElementById('walletSection');
+    
+        function updateFormState() {
+          const hasSaved  = savedCardSelect.value !== "";
+          const hasMethod = paymentMethodSelect.value !== "";
+    
+          // Reset all controls' states
+          savedCardSelect.disabled     = false;
+          paymentMethodSelect.disabled = false;
+          savedCardSelect.classList.remove('disabled-style');
+          paymentMethodSelect.classList.remove('disabled-style');
+          cardNumberLabel.classList.add('hidden');
+          expiryDateLabel.classList.add('hidden');
+          cvvLabel.classList.add('hidden');
+          walletSection.classList.add('hidden');
+    
+          if (hasSaved) {
+            // If Saved Card is selected → Disable payment method, show Expiry + CVV
+            paymentMethodSelect.disabled = true;
+            paymentMethodSelect.classList.add('disabled-style');
+            expiryDateLabel.classList.remove('hidden');
+            cvvLabel.classList.remove('hidden');
+          }
+          else if (hasMethod) {
+            // If Payment Method is selected → Disable Saved Card
+            savedCardSelect.disabled = true;
+            savedCardSelect.classList.add('disabled-style');
+    
+            if (paymentMethodSelect.value === 'SAFEPAY WALLET') {
+              // If it's a wallet → Show only wallet balance section
+              walletSection.classList.remove('hidden');
+            } else {
+              // For other card types → Show Card Number, Expiry, CVV
+              cardNumberLabel.classList.remove('hidden');
+              expiryDateLabel.classList.remove('hidden');
+              cvvLabel.classList.remove('hidden');
+            }
+          }
+          // If neither is selected, keep everything enabled and hide detailed fields
+        }
+    
+        savedCardSelect.addEventListener('change', updateFormState);
+        paymentMethodSelect.addEventListener('change', updateFormState);
+        updateFormState();  // Run once initially
+      });
+      
+    </script>
+
+    <span id="delete-card-url-template" data-url="{% url 'delete_saved_card' 0 %}"></span>
+  
+    <div id="toast" class="fixed top-4 right-4 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-lg hidden transition-opacity duration-300">
+      <span id="toast-message"></span>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'info' %}
+                    showToast("{{ message|escapejs }}");
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    });
+    
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+    
+        toastMessage.textContent = message;
+        toast.classList.remove('hidden');
+        toast.classList.add('opacity-100');
+    
+        setTimeout(() => {
+            toast.classList.add('hidden');
+            toast.classList.remove('opacity-100');
+        }, 4000); 
+    }
+    </script>
+
+    <!-- Toast Container for Notifications -->
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Select all Django message divs rendered by the server
+        const messages = document.querySelectorAll('.messages div');
+    
+        messages.forEach(function(messageDiv) {
+          // Create a new toast div
+          const toast = document.createElement('div');
+          toast.textContent = messageDiv.textContent;
+    
+          // Style the toast notification
+          toast.style.backgroundColor = '#4caf50';  // Green background for success/info
+          toast.style.color = 'white';
+          toast.style.padding = '10px 20px';
+          toast.style.marginBottom = '10px';
+          toast.style.borderRadius = '8px';
+          toast.style.boxShadow = '0px 2px 8px rgba(0,0,0,0.15)';
+          toast.style.opacity = '0.95';
+          toast.style.fontSize = '14px';
+          toast.style.minWidth = '200px';
+    
+          // Add the toast to the container
+          document.getElementById('toast-container').appendChild(toast);
+    
+          // Automatically remove the toast after 3 seconds
+          setTimeout(() => {
+            toast.remove();
+          }, 3000);
         });
-      </script>
+    
+        // Hide the original Django messages inside the form (no duplicate display)
+        const originalMessages = document.querySelector('.messages');
+        if (originalMessages) {
+          originalMessages.style.display = 'none';
+        }
+      });
+    </script>
+    
+
+      
 
   </body>
 </html>
