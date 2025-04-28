@@ -25,9 +25,7 @@ FERNET = Fernet(FERNET_SECRET_KEY.encode())
 FERNET_KEY = b'S5nHJdx9p6lKGqtXEKWIfHOF_jeab0Kr8h5fKrKufKw='
 FERNET = Fernet(FERNET_KEY)
 >>>>>>> Stashed changes
-=======
-FERNET_KEY = b'S5nHJdx9p6lKGqtXEKWIfHOF_jeab0Kr8h5fKrKufKw='
-FERNET = Fernet(FERNET_KEY)
+
 >>>>>>> Stashed changes
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
