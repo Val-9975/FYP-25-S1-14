@@ -715,7 +715,50 @@
         }, 4000); 
     }
     </script>
+
+    <!-- Toast Container for Notifications -->
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Select all Django message divs rendered by the server
+        const messages = document.querySelectorAll('.messages div');
     
+        messages.forEach(function(messageDiv) {
+          // Create a new toast div
+          const toast = document.createElement('div');
+          toast.textContent = messageDiv.textContent;
+    
+          // Style the toast notification
+          toast.style.backgroundColor = '#4caf50';  // Green background for success/info
+          toast.style.color = 'white';
+          toast.style.padding = '10px 20px';
+          toast.style.marginBottom = '10px';
+          toast.style.borderRadius = '8px';
+          toast.style.boxShadow = '0px 2px 8px rgba(0,0,0,0.15)';
+          toast.style.opacity = '0.95';
+          toast.style.fontSize = '14px';
+          toast.style.minWidth = '200px';
+    
+          // Add the toast to the container
+          document.getElementById('toast-container').appendChild(toast);
+    
+          // Automatically remove the toast after 3 seconds
+          setTimeout(() => {
+            toast.remove();
+          }, 3000);
+        });
+    
+        // Hide the original Django messages inside the form (no duplicate display)
+        const originalMessages = document.querySelector('.messages');
+        if (originalMessages) {
+          originalMessages.style.display = 'none';
+        }
+      });
+    </script>
+    
+
+      
 
   </body>
 </html>
