@@ -203,3 +203,7 @@ class SavedPaymentMethod(models.Model):
     @property
     def masked_number(self):
         return f"************{self.last_four_digits}"
+    
+    class SecurityProtocolDetail(models.Model):
+        content = models.TextField()
+        updated_at = models.DateTimeField(auto_now=True)
