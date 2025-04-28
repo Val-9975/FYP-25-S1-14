@@ -15,11 +15,16 @@ from pathlib import Path
 from cryptography.fernet import Fernet
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 FERNET_SECRET_KEY = os.getenv('FERNET_SECRET_KEY')
 if not FERNET_SECRET_KEY:
     raise ValueError("Missing FERNET_SECRET_KEY in environment variables")
 
 FERNET = Fernet(FERNET_SECRET_KEY.encode())
+=======
+FERNET_KEY = b'S5nHJdx9p6lKGqtXEKWIfHOF_jeab0Kr8h5fKrKufKw='
+FERNET = Fernet(FERNET_KEY)
+>>>>>>> Stashed changes
 =======
 FERNET_KEY = b'S5nHJdx9p6lKGqtXEKWIfHOF_jeab0Kr8h5fKrKufKw='
 FERNET = Fernet(FERNET_KEY)
