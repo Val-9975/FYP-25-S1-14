@@ -3,9 +3,10 @@ import threading
 import time
 import logging
 import random
-from datetime import datetime
+import datetime
+import re
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
@@ -16,36 +17,25 @@ from .forms import TicketUpdateForm
 from .login import handle_login
 from .logout import custom_logout
 from decimal import Decimal, InvalidOperation
-from .models import SecurityProtocol, SecurityProtocolDetail
+from .models import SecurityProtocol
 from django.http import JsonResponse
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from .login import authenticate_user
 from .verifyOTP import verify_otp_user
 from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from datetime import datetime, timedelta
-from django.utils.timezone import now
-from django.conf import settings
-from django.urls import reverse
+from .models import SavedPaymentMethod
+from django.views.decorators.http import require_POST
+
+
 logger = logging.getLogger(__name__)
 
 
 def create_user(request):
 
     if request.method == 'POST':
-        # First, check if the user agreed to the security protocols
-        agreement = request.POST.get('agree_terms')  # 'on' if checked, None otherwise
-        if not agreement:
-            messages.error(request, "Only if you agree to the protocols, then can an account be created.")
-            #Re-render the form with the current protocols content
-            protocol = SecurityProtocolDetail.objects.first()
-            return render(request, 'createUsers.html', {'security_protocol': protocol})
-
-        #collect form data
         email = request.POST.get('email')
         password = request.POST.get('password')
         first_name = request.POST.get('first_name')
@@ -67,26 +57,15 @@ def create_user(request):
             messages.error(request, "Invalid Role ID")
             return render(request, 'createUsers.html', {'email': email, 'first_name': first_name, 'last_name': last_name, 'phone_number': phone_number, 'address': address, 'city': city, 'state': state, 'country': country, 'zip_code': zip_code})
 
-        # Validate Admin Code for Admin or HelpDesk roles
-        if role_id in [3, 4]:
-            entered_admin_code = request.POST.get('admin_code', '').strip()
-            expected_code = settings.ADMIN_ROLE_CREATION_CODE
-
-            if entered_admin_code != expected_code:
-                messages.error(request, "Invalid Admin Code.")
-                protocol = SecurityProtocolDetail.objects.first()
-                return render(request, 'createUsers.html', {
-                    'security_protocol': protocol,
-                    'email': email, 'first_name': first_name, 'last_name': last_name,
-                    'phone_number': phone_number, 'address': address, 'city': city,
-                    'state': state, 'country': country, 'zip_code': zip_code
-                })
         status = request.POST.get('status', 'active')  # Default to 'active' if not provided
+
+        # Hash the password before saving (not hashing for now, if not cannot see in database)
+        #hashed_password = make_password(password)
 
         # Create the user and save to the database
         user = LegacyUser(
             email=email,
-            password=make_password(password), #hashed_password using Django's PBKDF2-SHA256 to hash it
+            password=password, #hashed_password to hash it
             first_name=first_name,
             last_name=last_name,
             phone_number=phone_number,
@@ -104,8 +83,7 @@ def create_user(request):
         return redirect('create_user')  # Redirect after successful creation
     else:
         # Handle GET request by rendering a form page
-        protocol = SecurityProtocolDetail.objects.first()
-        return render(request, 'createUsers.html', {'security_protocol': protocol})
+        return render(request, 'createUsers.html')
 
 
 def handle_login(request):
@@ -121,11 +99,7 @@ def handle_login(request):
 def verify_otp(request):
     if request.method == "POST":
         redirect_page = verify_otp_user(request)  # Calls function from verifyOTP.py
-
-        if redirect_page == "expired":
-            return render(request, 'verify_otp.html', {'otp_expired': True})
-        
-        elif redirect_page: 
+        if redirect_page:
             return redirect(redirect_page)
         else:
             messages.error(request, "Invalid OTP or your account is suspended.")
@@ -140,59 +114,28 @@ def custom_login(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
-        lockout_duration = timedelta(minutes=1)
-
-        try:
-            account_status = UserAccountStatus.objects.get(email=email)
-        except UserAccountStatus.DoesNotExist:
-            account_status = None
-
-        # If account record doesn't exist, return early
-        if not account_status:
-            messages.error(request, "Invalid login credentials.")
-            return render(request, "login.html")
-
-        # Lockout check
-        if account_status.failed_attempts >= 3:
-            if account_status.last_failed_attempt and now() - account_status.last_failed_attempt < lockout_duration:
-                messages.error(request, "Account locked due to multiple failed attempts. Try again after 10 minutes.")
-                return render(request, "login.html")
-            else:
-                account_status.failed_attempts = 0
-                account_status.save(update_fields=['failed_attempts'])
-
-        # Check if the user's account is suspended
         user = authenticate(request, username=email, password=password)
         if user is not None:
-            if account_status.account_status == "Suspended":
-                messages.error(request, "Your account is under review and has been temporarily suspended")
-                return render(request, "login.html")
+            try:
+                # Check if the user's account is suspended
+                account_status = UserAccountStatus.objects.get(email=email)
+                if account_status.account_status == "Suspended":
+                    messages.error(request, "Your account is under review and has been temporarily suspended")
+                    return render(request, "login.html")
+            except UserAccountStatus.DoesNotExist:
+                pass
 
-            account_status.failed_attempts = 0
-            account_status.last_failed_attempt = None
-            account_status.save(update_fields=['failed_attempts', 'last_failed_attempt'])
-
+            # Generate an OTP and store it (along with the credentials) in the session
             otp = random.randint(100000, 999999)
             request.session['otp'] = otp
             request.session['email'] = email
             request.session['password'] = password
-            print(f"Your OTP is: {otp}")
+            print(f"Your OTP is: {otp}")  # For development/testing
 
-            request.session.modified = True
-            request.session.save()
+            # Redirect to the OTP verification page
             return redirect('verify_otp')
-
         else:
-            account_status.failed_attempts += 1
-            account_status.last_failed_attempt = now()
-            account_status.save(update_fields=['failed_attempts', 'last_failed_attempt'])
-
-            attempts_left = max(0, 3 - account_status.failed_attempts)
-            if attempts_left == 0:
-                messages.error(request, "Too many failed attempts. Account locked for 10 minutes.")
-            else:
-                messages.error(request, f"Invalid login credentials. {attempts_left} attempt(s) left.")
-
+            messages.error(request, "Invalid login credentials")
     return render(request, "login.html")
 
 
@@ -300,78 +243,6 @@ def systemAdmin_dashboard(request) :
     }
     return render(request, 'SysAdminUI.html', context)
 
-@login_required
-def change_passwordProfile(request):
-    if request.method == "POST":
-        current_password = request.POST.get("current_password")
-        new_password = request.POST.get("new_password")
-        confirm_password = request.POST.get("confirm_password")
-
-        user = request.user
-
-        if not check_password(current_password, user.password):
-            messages.error(request, "Current password is incorrect.")
-            return redirect('change_password')
-
-        if new_password != confirm_password:
-            messages.error(request, "New password and confirm password do not match.")
-            return redirect('change_password')
-
-        user.password = make_password(new_password)
-        user.save()
-
-        update_session_auth_hash(request, user)
-
-        messages.success(request, "Password changed successfully.")
-
-        # Role-based redirect name
-        role_redirects = {
-            1: 'customer_profile',
-            2: 'merchant_profile',
-            3: 'sysadmin_dashboard',
-            4: 'helpdesk_profile'
-        }
-
-        url_name = role_redirects.get(user.role_id, 'home')
-        resolved_url = reverse(url_name)  # this returns e.g. "/customer/profile/"
-
-        return render(request, 'changePasswordFromProfile.html', {
-            'redirect_url': resolved_url
-        })
-
-    # For GET requests, you can still pass the redirect link
-    role_redirects = {
-        1: 'customer_profile',
-        2: 'merchant_profile',
-        3: 'sysadmin_dashboard',
-        4: 'helpdesk_profile'
-    }
-    url_name = role_redirects.get(request.user.role_id, 'home')
-    resolved_url = reverse(url_name)
-
-    return render(request, 'changePasswordFromProfile.html', {
-        'redirect_url': resolved_url
-    })
-
-def sysadmin_settings(request):
-    protocol = SecurityProtocolDetail.objects.first()
-    content = protocol.content if protocol and protocol.content else 'No security content saved yet.'
-    return render(request, 'SysAdminSecuritySettings.html', {
-        'protocol_content': content,
-    })
-
-def update_security_protocol_text(request):
-    if request.method == 'POST':
-        new_content = request.POST.get('security_content')
-        protocol = SecurityProtocolDetail.objects.first()
-        if protocol:
-            protocol.content = new_content
-            protocol.save()
-        else:
-            SecurityProtocolDetail.objects.create(content=new_content)
-        messages.success(request, "Security protocol details updated successfully.")
-    return redirect('sysadmin_settings')
-
 def process_payment(request):
     # Placeholder logic; replace with your actual payment processing code.
     return render(request, 'process_payment.html')
@@ -393,26 +264,6 @@ def custom_logout(request):
 
 
 # Customer
-
-@login_required
-def customer_profile(request) :
-    user = request.user #get currently logged in user
-
-    context = {
-        'user_id' : user.pk,
-        'email' : user.email,
-        'first_name' : user.first_name,
-        'last_name' : user.last_name,
-        'phone_number' : user.phone_number,
-        'address' : user.address,
-        'city' : user.city,
-        'state' : user.state,
-        'country' : user.country,
-        'zip_code' : user.zip_code,
-        #make sure user mode in model.py has these fields
-
-    }
-    return render(request, 'CustomerProfile.html', context)
 
 @login_required
 def top_up_wallet(request):
@@ -444,27 +295,6 @@ def contact_support(request):
     return render(request, 'contact.html')
 
 # Merchant
-
-@login_required
-def merchant_profile(request) :
-    user = request.user #get currently logged in user
-
-    context = {
-        'user_id' : user.pk,
-        'email' : user.email,
-        'first_name' : user.first_name,
-        'last_name' : user.last_name,
-        'phone_number' : user.phone_number,
-        'address' : user.address,
-        'city' : user.city,
-        'state' : user.state,
-        'country' : user.country,
-        'zip_code' : user.zip_code,
-        #make sure user mode in model.py has these fields
-
-    }
-    return render(request, 'MerchantProfile.html', context)
-
 def merchant_transactions_view(request):
     transactions = MerchantTransaction.objects.all()  # Fetch all transactions
     return render(request, 'transactions.html', {'transactions': transactions})
@@ -504,26 +334,43 @@ def process_money_transfer(request):
         merchant_email = request.POST.get('merchant_email')
         amount_str = request.POST.get('amount')
         payment_method = request.POST.get('payment_method')
-        card_number = request.POST.get('card_number', '')
+        saved_card_id = request.POST.get('saved_card_id')
         expiry_date = request.POST.get('expiry_date', '')
+        save_payment_method = request.POST.get('save_payment_method') == 'on'
+
+        card_number = ''
+        if saved_card_id:
+            try:
+                saved_card = SavedPaymentMethod.objects.get(id=saved_card_id, user=request.user)
+                vault_entry = TokenVault.objects.get(token=saved_card.token)
+                card_number = vault_entry.get_card_number()
+                payment_method = saved_card.payment_type  
+            except Exception:
+                messages.error(request, "Failed to retrieve saved card.")
+                return redirect('customer_dashboard')
+        else:
+            card_number = request.POST.get('card_number', '')
 
         # Validate card number using Luhn algorithm
         if not is_valid_card(card_number):
             messages.error(request, "Invalid card number.")
             return redirect('customer_dashboard')
+        
+        if not match_card_brand(card_number, payment_method):
+            messages.error(request, f"The card number does not match the selected {payment_method} format.")
+            return redirect('customer_dashboard')
 
-        # Check if expiry date format is MM/YY
+
+        # Check expiry format and expiration
         import re
         if not re.match(r'^\d{2}/\d{2}$', expiry_date):
             messages.error(request, "Invalid expiry date format.")
             return redirect('customer_dashboard')
-
-        #Check if card is expired
         if is_expired(expiry_date):
             messages.error(request, "Card is expired.")
             return redirect('customer_dashboard')
 
-        #Validate and parse amount
+        # Validate amount
         try:
             amount = Decimal(amount_str)
             if amount <= 0:
@@ -532,13 +379,12 @@ def process_money_transfer(request):
             messages.error(request, "Invalid amount.")
             return redirect('customer_dashboard')
 
-        #Get merchant by email
+        # Get merchant user by email
         merchant = get_object_or_404(LegacyUser, email=merchant_email, role_id=2)
-        token = f"tok_{uuid.uuid4().hex}"
         transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
         user = request.user
 
-        #Create the transaction within an atomic block
+        # Create transaction + save card if needed
         with db_transaction.atomic():
             transaction = MerchantTransaction.objects.create(
                 merchant=merchant,
@@ -556,14 +402,86 @@ def process_money_transfer(request):
                 status='pending'
             )
 
-            TokenVault.create_entry(token=token, card_number=card_number)
+            # New Save Card Logic (No duplicate save)
+            if save_payment_method and payment_method in ['VISA', 'MASTERCARD'] and not saved_card_id:
+                try:
+                    existing_methods = SavedPaymentMethod.objects.filter(user=request.user)
 
-        #Start the simulated payment processing in a background thread
+                    for method in existing_methods:
+                        vault_entry = TokenVault.objects.get(token=method.token)
+                        existing_card_number = vault_entry.get_card_number()
+                        if existing_card_number == card_number:
+                            logger.info("Card already saved. Skipping save.")
+                            messages.info(request, "This card is already saved.")
+                            break
+                    else:
+                        # No duplicate, so save
+                        token = f"tok_{uuid.uuid4().hex}"
+                        TokenVault.create_entry(token=token, card_number=card_number)
+
+                        SavedPaymentMethod.objects.create(
+                            user=request.user,
+                            payment_type=payment_method,
+                            last_four_digits=card_number[-4:],
+                            token=token
+                        )
+                except Exception as e:
+                    logger.error(f"Failed to save payment method: {str(e)}")
+        # Launch async processing
         print(f"DEBUG: Starting thread for transaction {transaction.id}", flush=True)
         thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
         thread.start()
 
         return redirect('view_purchase')
+
+
+
+def match_card_brand(card_number, brand):
+    card_number = card_number.replace(" ", "")
+    if brand == "VISA":
+        # VISA starts with 4 and is 16 in length
+        return bool(re.match(r"^4\d{15}$", card_number))
+    elif brand == "MASTERCARD":
+        # MasterCard starts with 51-55 or 2221-2720 and is 16 in length
+        return bool(re.match(r"^(5[1-5]\d{14}|2(2[2-9]\d{13}|[3-6]\d{14}|7[01]\d{13}|720\d{13}))$", card_number))
+    else:
+        return False
+
+
+
+
+@login_required
+def get_saved_payment_methods(request):
+    methods = SavedPaymentMethod.objects.filter(user=request.user).values(
+        'id',
+        'payment_type',
+        'last_four_digits'
+    )
+    
+    formatted_methods = []
+    for method in methods:
+        formatted_methods.append({
+            'id': method['id'],
+            'display': f"{method['payment_type']} ending in {method['last_four_digits']}"
+        })
+    
+    return JsonResponse({'methods': formatted_methods})
+
+@login_required
+def get_saved_card_detail(request, card_id):
+    try:
+        saved_card = SavedPaymentMethod.objects.get(id=card_id, user=request.user)
+        token = saved_card.token
+        vault_entry = TokenVault.objects.get(token=token)
+        card_number = vault_entry.get_card_number()
+
+        return JsonResponse({
+            'masked_number': f"************{card_number[-4:]}",
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
 
 
 # Bank Authorization
@@ -646,28 +564,9 @@ def complaints_view(request):
 # Admin
 @login_required
 def sysadmin_view_transactions(request):
+    # Retrieve all purchase transactions (latest first)
     transactions = MerchantTransaction.objects.all().order_by('-created_at')
-
-    # Mark transactions as suspicious if there are 3+ within 30 seconds by same customer
-    suspicious_customers = set()
-    grouped_by_customer = {}
-
-    for t in transactions:
-        grouped_by_customer.setdefault(t.customer_email, []).append(t)
-
-    suspicious_ids = set()
-    for email, txns in grouped_by_customer.items():
-        txns_sorted = sorted(txns, key=lambda x: x.created_at)
-        for i in range(len(txns_sorted) - 2):
-            t1, t2, t3 = txns_sorted[i:i+3]
-            if (t3.created_at - t1.created_at).total_seconds() <= 30:
-                suspicious_ids.update([t1.id, t2.id, t3.id])
-                suspicious_customers.add(email)
-
-    return render(request, 'SysAdminViewTransaction.html', {
-        'transactions': transactions,
-        'suspicious_ids': suspicious_ids
-    })
+    return render(request, 'SysAdminViewTransaction.html', {'transactions': transactions})
 
 def sysadmin_settings(request):
     return render(request, 'SysAdminSecuritySettings.html')
@@ -683,24 +582,15 @@ def submit_complaint(request):
         if form.is_valid():
             # Set the complainant (user) to the logged-in user
             complaint = form.save(commit=False)
-            complaint.user = request.user
+            complaint.user = request.user  # Automatically set the logged-in user as the complainant
             complaint.save()
 
             messages.success(request, "Complaint submitted successfully.")
-            
-            # Redirect based on user role
-            if request.user.role_id == 1:  # Customer
-                return redirect('customer_dashboard')
-            elif request.user.role_id == 2:  # Merchant
-                return redirect('merchant_dashboard')
-            else:
-                # Fallback for any other roles
-                return redirect('complaints_view')
+            return redirect('complaints_view')  # Or wherever you want to redirect after success
     else:
         form = ComplaintForm()
 
     return render(request, 'complaints.html', {'form': form})
-
 
 @login_required
 def view_submitted_complaints(request):
@@ -757,7 +647,7 @@ def ticket_details(request, ticket_id):
         form = TicketUpdateForm(request.POST, instance=ticket)
         if form.is_valid():
             form.save()
-            return redirect('view_tickets')  
+            return redirect('ticket_details.html', ticket_id=ticket.id)
     else:
         # Display the form with the current ticket data
         form = TicketUpdateForm(instance=ticket)
@@ -769,26 +659,6 @@ def ticket_details(request, ticket_id):
 
     return render(request, 'ticket_details.html', context)
 
-@login_required
-def helpdesk_profile(request) :
-    user = request.user #get currently logged in user
-
-    context = {
-        'user_id' : user.pk,
-        'email' : user.email,
-        'first_name' : user.first_name,
-        'last_name' : user.last_name,
-        'phone_number' : user.phone_number,
-        'address' : user.address,
-        'city' : user.city,
-        'state' : user.state,
-        'country' : user.country,
-        'zip_code' : user.zip_code,
-        #make sure user mode in model.py has these fields
-
-    }
-    return render(request, 'HelpdeskProfile.html', context)
-
 
 @login_required
 def live_chat(request):
@@ -797,7 +667,6 @@ def live_chat(request):
 @login_required
 def helpdesk_settings(request):
     return render(request, 'HelpdeskSettings.html')
-
 
 @login_required
 def suspend_customer(request):
@@ -865,3 +734,13 @@ def update_user_status(request):
 @login_required
 def test(request):
     return render(request, 'Something.html')
+
+@login_required
+@require_POST
+def delete_saved_card(request, card_id):
+    try:
+        card = SavedPaymentMethod.objects.get(id=card_id, user=request.user)
+        card.delete()
+        return JsonResponse({'status': 'success'})
+    except SavedPaymentMethod.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Card not found'}, status=404)
