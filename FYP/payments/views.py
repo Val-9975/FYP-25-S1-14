@@ -798,6 +798,25 @@ def ticket_details(request, ticket_id):
 
     return render(request, 'ticket_details.html', context)
 
+def helpdesk_profile(request) :
+    user = request.user #get currently logged in user
+
+    context = {
+        'user_id' : user.pk,
+        'email' : user.email,
+        'first_name' : user.first_name,
+        'last_name' : user.last_name,
+        'phone_number' : user.phone_number,
+        'address' : user.address,
+        'city' : user.city,
+        'state' : user.state,
+        'country' : user.country,
+        'zip_code' : user.zip_code,
+        #make sure user mode in model.py has these fields
+
+    }
+    return render(request, 'HelpdeskProfile.html', context)
+
 
 @login_required
 def live_chat(request):
