@@ -128,6 +128,16 @@ class Complaint(models.Model):
     complaint_text = models.TextField(max_length=200)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
+    complaint_status = models.CharField(
+        max_length=50,
+        default='Open',  # Set default here
+        choices=[('Open', 'Open'), ('Closed', 'Closed')]
+    )
+    closing_comment = models.TextField(
+        null=True,          # Allows NULL in database
+        blank=True,         # Allows empty string in forms
+        default=None       # Explicitly set default to None
+    )
 
     def __str__(self):
         # Ensure the string returns the emails of the complainant and the user being complained about
