@@ -181,3 +181,7 @@ class UserAccountStatus(models.Model):
 class SecurityProtocolDetail(models.Model):
     content = models.TextField()
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta: 
+        db_table = 'securityprotocoldetail'
+        managed = False
