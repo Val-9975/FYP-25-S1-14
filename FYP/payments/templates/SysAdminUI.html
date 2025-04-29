@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Admin Dashboard</title>
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
-    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>System Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&display=swap"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
 </head>
-<body class="bg-slate-50 font-sans">
-    <div class="flex flex-col min-h-screen">
+<body class="bg-slate-50 font-['Work_Sans',sans-serif]">
+
+  <!-- Page Container -->
+  <div class="min-h-screen flex flex-col">
+
         <!-- Top Navigation Bar -->
         <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
             <div class="flex items-center gap-2">
@@ -20,6 +23,7 @@
             <h2 class="text-lg font-bold">SafePay</h2>
         </div>
             <div class="flex items-center gap-4">
+                <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
                 <!-- Logout Button -->
                 <li class="list-none">
                     <form action="/logout/" method="POST">
@@ -32,44 +36,126 @@
             </div>
         </header>
 
-        <!-- Main Container -->
-        <div class="flex flex-1">
+    <!-- Main Section -->
+    <div class="flex flex-1">
+
             <!-- Sidebar -->
             <div class="w-64 bg-white border-r border-slate-200 p-4">
                 <h2 class="text-lg font-bold text-slate-900 mb-4">Dashboard</h2>
                 <ul class="space-y-2">
-                    <li><a href="{% url 'systemAdmin_dashboard' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">System Admin Details</a></li>
-                    <li><a href="SysAdminViewTransactions.html" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Monitor All Transactions</a></li>
-                    <li><a href="SysAdminViewUserLogs.html" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">View User Activity Logs</a></li>
-                    <li><a href="SysAdminSecuritySettings.html" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Security Settings</a></li>
-                    <li><a href="{% url 'submit_complaint' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Have Any Complaints?</a></li>
-                    <li><a href="{% url 'view_submitted_complaints' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">View Your Submitted Complaints</a></li>
-
-                    
+                    <li>
+                        <a href="{% url 'sysadmin_dashboard' %}" class="flex items-center gap-3 p-2 text-[#0c1116] bg-[#e7edf3] rounded-xl">
+                            System Admin Details
+                        </a>
+                    </li>                                        
+                    <li><a href="{% url 'sysadmin_view_transactions' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Monitor All Transactions</a></li>
+                    <li><a href="{% url 'sysadmin_manage_users' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Manage Users</a></li>
+                    <li><a href="{% url 'sysadmin_settings' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Security Settings</a></li>
                 </ul>
             </div>
 
-                <!-- Admin Details -->
-                <div class="flex-1 bg-white p-6 shadow-sm">
-                    <h2 class="text-xl font-bold text-slate-900 mb-4">System Admin Details</h2>
-                    <p class="text-slate-700"><strong>Admin User ID:</strong> {{user_id}}</p>
-                    <p class="text-slate-700"><strong>Admin User Email:</strong> {{email}}</p>
-                    <p class="text-slate-700"><strong>Admin User First Name:</strong> {{first_name}}</p>
-                    <p class="text-slate-700"><strong>Admin User Last Name:</strong> {{last_name}}</p>
-                    <p class="text-slate-700"><strong>Admin User Phone Number:</strong> {{phone_number}}</p>
-                    <p class="text-slate-700"><strong>Admin User Address:</strong> {{address}}</p>
-                    <p class="text-slate-700"><strong>Admin User City:</strong> {{city}}</p>
-                    <p class="text-slate-700"><strong>Admin User State:</strong> {{state}}</p>
-                    <p class="text-slate-700"><strong>Admin User Country:</strong> {{country}}</p>
-                    <p class="text-slate-700"><strong>Admin User Zipcode:</strong> {{zip_code}}</p>
-                </div>
-        </div>
-    </div>
+      <!-- Admin Details -->
+      <main class="flex-1 p-8">
+        <h2 class="text-3xl font-bold text-slate-900 mb-6">System Admin Details</h2>
 
-    <script>
-        document.querySelector('.dropdown').addEventListener('click', function() {
-            this.querySelector('.dropdown-content').classList.toggle('hidden');
-        });
-    </script>
+        <div class="bg-white rounded-xl shadow p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-slate-700">
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="badge-check" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg">Admin User ID</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ user_id }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="mail" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Email</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ email }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">First Name</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ first_name }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Last Name</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ last_name }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="phone" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Phone Number</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ phone_number }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Address</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ address }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="building" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">City</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ city }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="map" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">State</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ state }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="globe" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Country</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ country }}</p>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 text-slate-5000 mb-1">
+                    <i data-lucide="hash" class="w-5 h-5"></i>
+                    <p class="font-semibold text-lg text-slate-5000 mb-1">Zip Code</p>
+                </div>
+                <p class="text-lg text-slate-800">{{ zip_code }}</p>
+            </div>
+
+          </div>
+        </div>
+        <!-- Change Password Button -->
+        <div class="mt-6">
+            <a href="{% url 'change_passwordProfile' %}" class="inline-block bg-blue-600 text-white font-bold px-6 py-2 rounded-xl hover:bg-blue-700 transition">
+                Change Password
+            </a>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  lucide.createIcons(); // This will render the icons
+</script>
+
 </body>
 </html>

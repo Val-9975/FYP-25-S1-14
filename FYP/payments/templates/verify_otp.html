@@ -39,11 +39,12 @@
             border-radius: 8px;
             font-size: 20px;
             text-align: center;
-            letter-spacing: 4px; /* Spaces out digits for clarity */
+            letter-spacing: 4px;
         }
-        .verify-button {
+        .verify-button, .resend-button {
             width: 100%;
             padding: 14px;
+            margin-top: 10px;
             background-color: #007BFF;
             color: white;
             border: none;
@@ -53,36 +54,52 @@
             cursor: pointer;
             transition: 0.3s ease;
         }
-        .verify-button:hover {
+        .verify-button:hover, .resend-button:hover {
             background-color: #0056b3;
+        }
+        .logo-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .logo-header svg {
+            height: 24px;
+            width: 24px;
         }
     </style>
 </head>
 <body>
 
-    <div class="flex items-center gap-2">
-        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
-            <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
-        </svg>
-    
+<div class="logo-header">
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
+    </svg>
     <h2 class="text-lg font-bold">SafePay</h2>
 </div>
 
-    <div class="container">
-        <h2>Enter the 6-digit code for authentication</h2>
-        
-        {% if messages %}
-            {% for message in messages %}
-                <p style="color: red;">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
-        
-        <form method="post">
-            {% csrf_token %}
-            <input type="text" name="otp" class="input-field" placeholder="Enter OTP" maxlength="6" required>
-            <button type="submit" class="verify-button">Verify</button>
-        </form>
-    </div>
+<div class="container">
+    <h2>Enter the 6-digit code for authentication</h2>
 
+    {% if messages %}
+        {% for message in messages %}
+            <p style="color: red;">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="otp" class="input-field" placeholder="Enter OTP" maxlength="6" required>
+        <button type="submit" onclick="localStorage.clear();" class="verify-button">Verify</button>
+    </form>
+
+</div>
+
+{% if otp_expired == True %}
+<script>
+        alert("OTP Expired, Please login again");
+        window.location.href = "{% url 'login' %}";
+</script>
+{% endif %}
 </body>
 </html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+  <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-slate-50" style="font-family: 'Work Sans', 'Noto Sans', sans-serif;">
+  <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+      <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
+      <div class="flex items-center gap-2">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
+              <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
+          </svg>
+          <h2 class="text-lg font-bold">SafePay</h2>
+      </div>
+      <div class="flex items-center gap-4">
+        <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
+        <!-- Logout Button -->
+        <li class="list-none">
+          <form action="/logout/" method="POST">
+              {% csrf_token %}
+              <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
+                  Logout
+              </button>
+          </form>
+        </li>
+      </div>
+    </header>
+    <div class="flex flex-1">
+      <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
+        <h2 class="text-lg font-bold text-[#0e141b] mb-4">Dashboard</h2>
+        <ul class="space-y-2">
+          <li><a href="{% url 'sysadmin_dashboard' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">System Admin Details</a></li>
+          <li>
+            <a href="{% url 'sysadmin_view_transactions' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] ">
+              Monitor All Transactions
+            </a>
+          </li>
+          <li><a href="{% url 'sysadmin_manage_users' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Manage Users</a></li>
+          <li><a href="{% url 'sysadmin_settings' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Security Settings</a></li>
+        </ul>
+      </div>
+      <div class="flex-1 p-6">
+        <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">Transaction Details</h1>
+        {% if transactions %}
+          {% for transaction in transactions %}
+            <div class="bg-white p-6 rounded-xl shadow-md mb-4">
+              <p class="text-[#0e141b]"><strong>Transaction Number:</strong> {{ transaction.transaction_number }}</p>
+              <p class="text-[#0e141b]"><strong>Customer Name:</strong> {{ transaction.customer_first_name }} {{ transaction.customer_last_name }}</p>
+              <p class="text-[#0e141b]"><strong>Merchant Email:</strong> {{ transaction.merchant.email }}</p>
+              <p class="{% if transaction.amount_sent > 10000 or transaction.id in suspicious_ids %}text-red-600 font-bold{% else %}text-[#0e141b]{% endif %}">
+                <strong>Amount Sent:</strong> ${{ transaction.amount_sent }}
+                {% if transaction.amount_sent > 10000 %}
+                  <span class="ml-2 text-sm text-red-700 font-semibold italic">(Suspicious amount)</span>
+                {% endif %}
+                {% if transaction.id in suspicious_ids %}
+                  <span class="ml-2 text-sm text-red-700 font-semibold italic">(Possible fraud)</span>
+                {% endif %}
+              </p>              
+              <p class="text-[#0e141b]"><strong>Payment Method:</strong> {{ transaction.payment_method }}</p>
+              <p class="text-[#0e141b]"><strong>Date:</strong> {{ transaction.created_at|date:"Y-m-d H:i" }}</p>
+              {% if transaction.amount_sent > 10000 or transaction.id in suspicious_ids %}
+                <button class="mt-4 bg-red-600 text-white px-4 py-2 rounded-xl"
+                        onclick="suspendCustomer('{{ transaction.id }}')">
+                  Suspend Customer
+                </button>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-[#0e141b]">No transactions found.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  
+  <script>
+    function suspendCustomer(transactionId) {
+        if (confirm('Are you sure you want to suspend this customer?')) {
+            $.ajax({
+                url: "{% url 'suspend_customer' %}",
+                method: 'POST',
+                data: {
+                    'transaction_id': transactionId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('Customer suspended successfully');
+                    } else if (response.status === 'error') {
+                        alert(response.message); 
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while suspending the customer.');
+                }
+            });
+        }
+    }
+  </script>
+
+</body>
+</html>

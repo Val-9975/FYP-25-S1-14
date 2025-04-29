@@ -13,6 +13,17 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 
+
+FERNET_SECRET_KEY = os.getenv('FERNET_SECRET_KEY')
+if not FERNET_SECRET_KEY:
+    raise ValueError("Missing FERNET_SECRET_KEY in environment variables")
+
+FERNET = Fernet(FERNET_SECRET_KEY.encode())
+
+FERNET_KEY = b'S5nHJdx9p6lKGqtXEKWIfHOF_jeab0Kr8h5fKrKufKw='
+FERNET = Fernet(FERNET_KEY)
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -50,6 +61,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # Default
 ]
 
 CSRF_COOKIE_SECURE = True  # Set to True if you're using HTTPS
@@ -92,7 +107,7 @@ WSGI_APPLICATION = 'custom_gateway.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'payment_gateway',           # Replace with your MySQL database name
+        'NAME': 'gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
         'PASSWORD': '',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
@@ -100,7 +115,15 @@ DATABASES = {
     }
 }
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'safepay2025@gmail.com'  # A dedicated sender account
+EMAIL_HOST_PASSWORD = 'jwdg hwje yioh tqyb'        # App password or SMTP password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+ADMIN_ROLE_CREATION_CODE = 'SECURE2025'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

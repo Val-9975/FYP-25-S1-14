@@ -88,10 +88,8 @@
         }
           
     </style>
-    </style>
 </head>
 <body>
-   
     <div class="flex items-center gap-2">
         <a href="/">
             <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
@@ -103,16 +101,25 @@
     </div>
 
 
-<div class="container">
-    <h2>SafePay Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        <input type="email" name="email" placeholder="Email" class="input-field" required>
-        <input type="password" name="password" placeholder="Password" class="input-field" required>
-        <button type="submit" class="sign-in-button">Sign In</button>
-    </form>
-    <a href="#" class="forgot-password">Forgot Password?</a>
-    <a href="{% url 'create_user' %}" class="create-users">Create New Account</a>
-</div>
+    <div class="container">
+        <h2>SafePay Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="email" name="email" placeholder="Email" class="input-field" required>
+            <input type="password" name="password" placeholder="Password" class="input-field" required>
+            <button type="submit" class="sign-in-button">Sign In</button>
+        </form>
+        <a href="{% url 'forgot_password' %}" class="forgot-password">Forgot Password?</a>
+        <a href="{% url 'create_user' %}" class="create-users">Create New Account</a>
+    </div>
+
+    {% if messages %}
+    <script>
+        {% for message in messages %}
+        alert("{{ message }}");
+        {% endfor %}
+    </script>
+    {% endif %}
+
 </body>
 </html>
