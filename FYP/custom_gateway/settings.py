@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
-from cryptography.fernet import Fernet
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -95,7 +94,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'payment_gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
-        'PASSWORD': '151515',              # Replace with your MySQL password
+        'PASSWORD': '',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
         'PORT': '3306',              # Default MySQL port
     }
@@ -129,7 +128,6 @@ AUTHENTICATION_BACKENDS = [
 
 LOGOUT_REDIRECT_URL = '/login/'
 
-FERNET_KEY = os.environ.get('FERNET_KEY', Fernet.generate_key().decode())
 
 # Use database-backed sessions
 SESSION_ENGINE = 'django.contrib.sessions.backends.db' 
@@ -161,3 +159,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'safepay2025@gmail.com'  # A dedicated sender account
+EMAIL_HOST_PASSWORD = 'jwdg hwje yioh tqyb'        # App password or SMTP password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
