@@ -466,12 +466,12 @@ def process_payment_delayed(transaction_id, amount, card_number):
         print(f"Processing transaction {transaction.transaction_number}", flush=True)  # Debugging log
         
         max_retries = 2
-        retry_delay = 5  # seconds between retries
+        retry_delay = 5
         attempt = 0
         success = False
 
         while attempt < max_retries and not success:
-            print(f"Attempt {attempt + 1} to capture payment...")
+            print(f"Attempt {attempt + 1} to capture payment...", flush=True)
             time.sleep(retry_delay)
 
             transaction = MerchantTransaction.objects.get(id=transaction_id)
@@ -480,8 +480,10 @@ def process_payment_delayed(transaction_id, amount, card_number):
             if random.random() < 0.5:
                 transaction.status = 'success'
                 transaction.save()
-                print("Payment captured successfully.")
-                success = True            
+                print("Payment captured successfully.", flush=True)
+                success = True    
+
+                # Send merchant success email
                 send_mail(
                     subject='Payment Received from SafePay',
                     message=(
@@ -492,20 +494,36 @@ def process_payment_delayed(transaction_id, amount, card_number):
                         f"Please fulfill the order as soon as possible.\n\n"
                         f"– SafePay Gateway"
                     ),
-                    from_email=None,  # uses DEFAULT_FROM_EMAIL
+                    from_email=None,
                     recipient_list=['testmerchantt1212@gmail.com'],
                     fail_silently=False
                 )
-                
-                # Prepare simulated data to send to the "bank"
+
+                # Send customer success email
+                send_mail(
+                    subject='Payment Receipt from SafePay',
+                    message=(
+                        f"Hi {transaction.customer_first_name},\n\n"
+                        f"Your payment of ${transaction.amount_sent} to {transaction.merchant.first_name} "
+                        f"{transaction.merchant.last_name} was successful.\n"
+                        f"Transaction ID: {transaction.transaction_number}\n\n"
+                        f"Thank you for using SafePay!\n\n"
+                        f"– SafePay Gateway"
+                    ),
+                    from_email=None,
+                    recipient_list=['safepaycustomer2025@gmail.com'],
+                    fail_silently=False
+                )
+
+                # Write to bank.txt
                 bank_data = {
                     "merchant_id": str(transaction.merchant.pk),
                     "card_number": card_number,  
                     "cardholder_name": f"{transaction.customer_first_name} {transaction.customer_last_name}",
-                    "expiry_date": "12/26",  # simulate static expiry
-                    "cvv": "123",  # simulate dummy CVV
+                    "expiry_date": "12/26",
+                    "cvv": "123",
                     "amount": str(transaction.amount_sent),
-                    "currency": "SGD",  # you can make this dynamic later
+                    "currency": "SGD",
                     "transaction_id": transaction.transaction_number,
                     "timestamp": datetime.now().isoformat(),
                     "billing_address": {
@@ -516,20 +534,36 @@ def process_payment_delayed(transaction_id, amount, card_number):
                     }
                 }
 
-                # Write this data to 'bank.txt'
                 with open("bank.txt", "a") as f:
                     f.write(json.dumps(bank_data, indent=4))
                     f.write("\n\n")
-                
+
             else:
+                print("Payment failed. Retrying...", flush=True)
                 attempt += 1
-                if attempt < max_retries:
-                    print("Payment failed. Retrying...")
-                else:
-                    transaction.status = 'failed'
-                    transaction.save()
-                    print("All payment attempts failed.")
-            print(f"Transaction {transaction.transaction_number} updated to {transaction.status}")
+
+        if not success:
+            transaction = MerchantTransaction.objects.get(id=transaction_id)
+            transaction.status = 'failed'
+            transaction.save()
+            print(f"All payment attempts failed for transaction {transaction.transaction_number}", flush=True)
+
+            send_mail(
+                subject='Payment Failed Notification - SafePay',
+                message=(
+                    f"Hi {transaction.customer_first_name},\n\n"
+                    f"Unfortunately, your payment of ${transaction.amount_sent} to "
+                    f"{transaction.merchant.first_name} {transaction.merchant.last_name} "
+                    f"could not be processed.\n"
+                    f"Transaction ID: {transaction.transaction_number}\n\n"
+                    f"Please try again later or use a different payment method.\n\n"
+                    f"– SafePay Gateway"
+                ),
+                from_email=None,
+                recipient_list=['safepaycustomer2025@gmail.com'],
+                fail_silently=False
+            )
+
 
     except MerchantTransaction.DoesNotExist:
         print(f"Transaction {transaction_id} does not exist.")     
