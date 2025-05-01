@@ -839,11 +839,15 @@ def submit_complaint(request):
             complaint.save()
 
             messages.success(request, "Complaint submitted successfully.")
-            return redirect('complaints_view')  # Or wherever you want to redirect after success
+            return redirect('complaint_success')  
     else:
         form = ComplaintForm()
 
     return render(request, 'complaints.html', {'form': form})
+
+@login_required
+def complaint_success(request):
+    return render(request, 'complaint_success.html')
 
 @login_required
 def view_submitted_complaints(request):
