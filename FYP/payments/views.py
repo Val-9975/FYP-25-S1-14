@@ -33,6 +33,7 @@ from .models import SavedPaymentMethod
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.urls import reverse
+from .decorators import role_required, ROLE_CUSTOMER, ROLE_MERCHANT, ROLE_ADMIN, ROLE_HELPDESK
 
 
 logger = logging.getLogger(__name__)
@@ -263,6 +264,7 @@ def custom_login(request):
 
 
 @login_required
+@role_required(ROLE_CUSTOMER)
 def customer_dashboard(request):
     user = request.user
     balance = user.wallet_balance  # or a default if None
@@ -284,6 +286,7 @@ def customer_dashboard(request):
     return render(request, 'customerUI.html', context)
 
 @login_required
+@role_required(ROLE_MERCHANT)
 def merchant_dashboard(request):
     user = request.user  # Get the currently logged-in user
     status_filter = request.GET.get('status')  # <-- Get status from query param
@@ -326,6 +329,7 @@ def merchant_dashboard(request):
     return render(request, 'merchantUI.html', context)
 
 @login_required
+@role_required(ROLE_HELPDESK)
 def helpDesk_dashboard(request) :
     user = request.user #get currently logged in user
 
@@ -346,6 +350,7 @@ def helpDesk_dashboard(request) :
     return render(request, 'HelpDeskUI.html', context)
 
 @login_required
+@role_required(ROLE_ADMIN)
 def systemAdmin_dashboard(request) :
     user = request.user #get currently logged in user
 
