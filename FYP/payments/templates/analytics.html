@@ -51,25 +51,55 @@
       <main class="flex-1 p-8">
         <h2 class="text-3xl font-bold text-slate-900 mb-6">Complaint Analytics</h2>
 
-        <div class="bg-white rounded-xl shadow p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <!-- Category Breakdown Card -->
-            <div class="p-4 border rounded-lg">
-              <h3 class="text-lg font-semibold mb-4">Complaints by Category</h3>
-              <canvas id="categoryChart" height="250"></canvas>
-            </div>
-            
-            <!-- Status Distribution Card -->
-            <div class="p-4 border rounded-lg">
-              <h3 class="text-lg font-semibold mb-4">Complaint Status</h3>
-              <canvas id="statusChart" height="250"></canvas>
+        <!-- Tabs Navigation -->
+        <div class="mb-6 border-b border-slate-200">
+          <ul class="flex flex-wrap -mb-px" id="analyticsTabs" role="tablist">
+            <li class="mr-2" role="presentation">
+              <button class="inline-block p-4 border-b-2 rounded-t-lg" 
+                      id="overview-tab" 
+                      data-tabs-target="#overview" 
+                      type="button" 
+                      role="tab" 
+                      aria-controls="overview" 
+                      aria-selected="true">Overview</button>
+            </li>
+            <li class="mr-2" role="presentation">
+              <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-slate-600 hover:border-slate-300"
+                      id="timeline-tab"
+                      data-tabs-target="#timeline"
+                      type="button"
+                      role="tab"
+                      aria-controls="timeline"
+                      aria-selected="false">Timeline</button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Tabs Content -->
+        <div id="analyticsTabsContent">
+          <!-- Overview Tab -->
+          <div class="hidden p-4 rounded-lg bg-white" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Category Breakdown Card -->
+              <div class="p-4 border rounded-lg">
+                <h3 class="text-lg font-semibold mb-4">Complaints by Category</h3>
+                <canvas id="categoryChart" height="250"></canvas>
+              </div>
+              
+              <!-- Status Distribution Card -->
+              <div class="p-4 border rounded-lg">
+                <h3 class="text-lg font-semibold mb-4">Complaint Status</h3>
+                <canvas id="statusChart" height="250"></canvas>
+              </div>
             </div>
           </div>
-          
-          <!-- Timeline Card -->
-          <div class="p-4 border rounded-lg">
-            <h3 class="text-lg font-semibold mb-4">Complaints Over Time (Last 30 Days)</h3>
-            <canvas id="timelineChart" height="350"></canvas>
+
+          <!-- Timeline Tab -->
+          <div class="hidden p-4 rounded-lg bg-white" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
+            <div class="p-4 border rounded-lg">
+              <h3 class="text-lg font-semibold mb-4">Complaints Over Time (Last 30 Days)</h3>
+              <canvas id="timelineChart" height="350"></canvas>
+            </div>
           </div>
         </div>
       </main>
@@ -81,8 +111,40 @@
   <script>
     lucide.createIcons();
     
-    // Wait for DOM to load
+    // Tab functionality
     document.addEventListener('DOMContentLoaded', function() {
+      // Get all tab buttons and panels
+      const tabButtons = document.querySelectorAll('[role="tab"]');
+      const tabPanels = document.querySelectorAll('[role="tabpanel"]');
+      
+      // Set first tab as active by default
+      tabButtons[0].classList.add('text-blue-600', 'border-blue-600');
+      tabPanels[0].classList.remove('hidden');
+      
+      // Add click event listeners to tabs
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          // Remove active styles from all buttons
+          tabButtons.forEach(btn => {
+            btn.classList.remove('text-blue-600', 'border-blue-600');
+            btn.classList.add('border-transparent');
+          });
+          
+          // Hide all panels
+          tabPanels.forEach(panel => {
+            panel.classList.add('hidden');
+          });
+          
+          // Add active styles to clicked button
+          button.classList.add('text-blue-600', 'border-blue-600');
+          button.classList.remove('border-transparent');
+          
+          // Show corresponding panel
+          const targetPanel = document.querySelector(button.getAttribute('data-tabs-target'));
+          targetPanel.classList.remove('hidden');
+        });
+      });
+
       // Category Chart (Pie)
       const categoryCtx = document.getElementById('categoryChart');
       new Chart(categoryCtx, {

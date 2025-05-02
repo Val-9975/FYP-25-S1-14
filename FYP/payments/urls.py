@@ -54,7 +54,7 @@ urlpatterns = [
     path('dashboard/Helpdesk/LiveChat/', views.live_chat, name='live_chat'),
     path('dashboard/Helpdesk/Settings/', views.helpdesk_settings, name='helpdesk_settings'),
     path('dashboard/Helpdesk/Profile/', views.helpdesk_profile, name='helpdesk_profile'),
-    path('helpdesk/analytics/', views.complaint_analytics, name='complaint_analytics'),
+    path('dashboard/Helpdesk/Analytics/', views.complaint_analytics, name='complaint_analytics'),
 
 ]
 
