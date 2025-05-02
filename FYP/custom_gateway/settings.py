@@ -68,7 +68,7 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # Default
 ]
 
-CSRF_COOKIE_SECURE = True  # Set to True if you're using HTTPS
+CSRF_COOKIE_SECURE = False  # Set to True if you're using HTTPS
 CSRF_COOKIE_HTTPONLY = True  # This ensures the CSRF cookie is not accessible via JavaScript
 
 
@@ -108,11 +108,11 @@ WSGI_APPLICATION = 'custom_gateway.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'db',           # Replace with your MySQL database name
+        'NAME': 'gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
-        'PASSWORD': 'password',              # Replace with your MySQL password
+        'PASSWORD': '1234',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
-        'PORT': '3306',              # Default MySQL port
+        'PORT': '3307',              # Default MySQL port
     }
 }
 
@@ -160,7 +160,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Session expiration settings (adjust as needed)
 SESSION_COOKIE_AGE = 3600  # Session lasts 1 hour (in seconds)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session even after closing browser
-SESSION_COOKIE_SECURE = True #set this if using https
+SESSION_COOKIE_SECURE = False #set this if using https
 
 
 # Internationalization

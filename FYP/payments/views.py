@@ -435,24 +435,8 @@ def change_passwordProfile(request):
         'redirect_url': resolved_url
     })
 
-def sysadmin_settings(request):
-    protocol = SecurityProtocolDetail.objects.first()
-    content = protocol.content if protocol and protocol.content else 'No security content saved yet.'
-    return render(request, 'SysAdminSecuritySettings.html', {
-        'protocol_content': content,
-    })
 
-def update_security_protocol_text(request):
-    if request.method == 'POST':
-        new_content = request.POST.get('security_content')
-        protocol = SecurityProtocolDetail.objects.first()
-        if protocol:
-            protocol.content = new_content
-            protocol.save()
-        else:
-            SecurityProtocolDetail.objects.create(content=new_content)
-        messages.success(request, "Security protocol details updated successfully.")
-    return redirect('sysadmin_settings')
+
 
 def process_payment(request):
     # Placeholder logic; replace with your actual payment processing code.
@@ -822,7 +806,21 @@ def sysadmin_view_transactions(request):
 
 
 def sysadmin_settings(request):
-    return render(request, 'SysAdminSecuritySettings.html')
+    protocol = SecurityProtocolDetail.objects.first()
+    print(f"Protocol: {protocol}")
+    return render(request, 'SysAdminSecuritySettings.html', {'security_protocol': protocol})
+
+def update_security_protocol_text(request):
+    if request.method == 'POST':
+        new_content = request.POST.get('security_content')
+        protocol = SecurityProtocolDetail.objects.first()
+        if protocol:
+            protocol.content = new_content
+            protocol.save()
+        else:
+            SecurityProtocolDetail.objects.create(content=new_content)
+        messages.success(request, "Security protocol details updated successfully.")
+    return redirect('sysadmin_settings')
 
 def sysadmin_view_user_logs(request):
     # any context you want to pass in
