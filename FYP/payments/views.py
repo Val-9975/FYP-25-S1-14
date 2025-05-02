@@ -838,7 +838,6 @@ def submit_complaint(request):
             complaint.user = request.user  # Automatically set the logged-in user as the complainant
             complaint.save()
 
-            messages.success(request, "Complaint submitted successfully.")
             return redirect('complaint_success')  
     else:
         form = ComplaintForm()
