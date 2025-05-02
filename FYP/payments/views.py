@@ -4,7 +4,7 @@ import time
 import logging
 import random
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -34,6 +34,8 @@ from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.urls import reverse
 from .decorators import role_required, ROLE_CUSTOMER, ROLE_MERCHANT, ROLE_ADMIN, ROLE_HELPDESK
+from collections import defaultdict
+import json
 
 
 logger = logging.getLogger(__name__)
@@ -933,6 +935,46 @@ def helpdesk_profile(request) :
 
     }
     return render(request, 'HelpdeskProfile.html', context)
+
+def complaint_analytics(request):
+    # Calculate total complaints for percentage calculations
+    total_complaints = Complaint.objects.count()
+    
+    # 1. Complaints by Category
+    category_data = defaultdict(int)
+    for complaint in Complaint.objects.all():
+        category_data[complaint.category] += 1
+    
+    # 2. Complaint Status Distribution
+    status_data = defaultdict(int)
+    for complaint in Complaint.objects.all():
+        status_data[complaint.complaint_status] += 1
+    
+    # 3. Complaints Over Time (Last 30 days)
+    timeline_data = defaultdict(int)
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=30)
+    
+    # Initialize all dates in the range with 0
+    for day in (start_date + timedelta(n) for n in range(31)):
+        timeline_data[day.strftime('%Y-%m-%d')] = 0
+    
+    # Populate with actual data
+    for complaint in Complaint.objects.filter(created_at__gte=start_date):
+        day = complaint.created_at.strftime('%Y-%m-%d')
+        timeline_data[day] += 1
+    
+    # Prepare data for JSON serialization
+    context = {
+        'category_labels': json.dumps(list(category_data.keys())),
+        'category_data': json.dumps(list(category_data.values())),
+        'status_labels': json.dumps(list(status_data.keys())),
+        'status_data': json.dumps(list(status_data.values())),
+        'timeline_labels': json.dumps(sorted(timeline_data.keys())),
+        'timeline_data': json.dumps([timeline_data[day] for day in sorted(timeline_data.keys())]),
+    }
+    
+    return render(request, 'analytics.html', context)
 
 
 @login_required
