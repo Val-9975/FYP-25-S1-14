@@ -1,0 +1,18 @@
+{
+    "merchant_id": "13",
+    "card_number": "4111111111111111",
+    "cardholder_name": "Terrance Tan",
+    "expiry_date": "11/26",
+    "cvv": "111",
+    "amount": "1.00",
+    "currency": "SGD",
+    "transaction_id": "f652f20f1014",
+    "timestamp": "2025-04-30T17:02:33.327583",
+    "billing_address": {
+        "address": "Clementi",
+        "city": "Singapore",
+        "state": "Singapore",
+        "country": "Singapore"
+    }
+}
+

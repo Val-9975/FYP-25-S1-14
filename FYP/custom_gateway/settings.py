@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+from cryptography.fernet import Fernet
+
 
 
 FERNET_SECRET_KEY = os.getenv('FERNET_SECRET_KEY')
@@ -107,7 +109,7 @@ WSGI_APPLICATION = 'custom_gateway.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'gateway',           # Replace with your MySQL database name
+        'NAME': 'payment_gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
         'PASSWORD': '',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development

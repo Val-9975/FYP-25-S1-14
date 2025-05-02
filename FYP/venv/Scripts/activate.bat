@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\Chester\Desktop\FYP\FYP-25-S1-14\FYP\custom_gateway\venv
+set VIRTUAL_ENV=C:\Users\Chester\Desktop\FYP\FYP-25-S1-14\fyp\venv
 
 if not defined PROMPT set PROMPT=$P$G
 

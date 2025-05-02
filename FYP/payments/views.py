@@ -601,6 +601,8 @@ def process_money_transfer(request):
         saved_card_id = request.POST.get('saved_card_id')
         expiry_date = request.POST.get('expiry_date', '')
         save_payment_method = request.POST.get('save_payment_method') == 'on'
+        cvv = request.POST.get('cvv')
+        currency = request.POST.get('currency')
 
         card_number = ''
         if saved_card_id:
@@ -630,9 +632,9 @@ def process_money_transfer(request):
         if not re.match(r'^\d{2}/\d{2}$', expiry_date):
             messages.error(request, "Invalid expiry date format.")
             return redirect('customer_dashboard')
-        if is_expired(expiry_date):
-            messages.error(request, "Card is expired.")
-            return redirect('customer_dashboard')
+        # if is_expired(expiry_date):
+        #     messages.error(request, "Card is expired.")
+        #     return redirect('customer_dashboard')
 
         # Validate amount
         try:
@@ -693,7 +695,7 @@ def process_money_transfer(request):
                     logger.error(f"Failed to save payment method: {str(e)}")
         # Launch async processing
         print(f"DEBUG: Starting thread for transaction {transaction.id}", flush=True)
-        thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
+        thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number, expiry_date, cvv, currency))
         thread.start()
 
         return redirect('view_purchase')
@@ -746,10 +748,8 @@ def get_saved_card_detail(request, card_id):
         return JsonResponse({'error': str(e)}, status=400)
 
 
-
-
 # Bank Authorization
-def process_payment_delayed(transaction_id, amount, card_number):
+def process_payment_delayed(transaction_id, amount, card_number, expiry_date, cvv, currency):
     """
     Simulated delayed payment processing function.
     The status is updated after 10 seconds.
@@ -792,7 +792,7 @@ def process_payment_delayed(transaction_id, amount, card_number):
                         f"– SafePay Gateway"
                     ),
                     from_email=None,
-                    recipient_list=['testmerchantt1212@gmail.com'],
+                    recipient_list=[transaction.merchant.email],
                     fail_silently=False
                 )
 
@@ -808,19 +808,20 @@ def process_payment_delayed(transaction_id, amount, card_number):
                         f"– SafePay Gateway"
                     ),
                     from_email=None,
-                    recipient_list=['safepaycustomer2025@gmail.com'],
+                    recipient_list=[transaction.customer_email],
                     fail_silently=False
                 )
 
                 # Write to bank.txt
+                # Simulation of data being sent to the bank for authorisation
                 bank_data = {
                     "merchant_id": str(transaction.merchant.pk),
                     "card_number": card_number,  
                     "cardholder_name": f"{transaction.customer_first_name} {transaction.customer_last_name}",
-                    "expiry_date": "12/26",
-                    "cvv": "123",
+                    "expiry_date": expiry_date,
+                    "cvv": cvv,
                     "amount": str(transaction.amount_sent),
-                    "currency": "SGD",
+                    "currency": currency,
                     "transaction_id": transaction.transaction_number,
                     "timestamp": datetime.now().isoformat(),
                     "billing_address": {
@@ -857,7 +858,7 @@ def process_payment_delayed(transaction_id, amount, card_number):
                     f"– SafePay Gateway"
                 ),
                 from_email=None,
-                recipient_list=['safepaycustomer2025@gmail.com'],
+                recipient_list=[transaction.customer_email],
                 fail_silently=False
             )
 

@@ -35,7 +35,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\Chester\Desktop\FYP\FYP-25-S1-14\FYP\custom_gateway\venv"
+VIRTUAL_ENV="C:\Users\Chester\Desktop\FYP\FYP-25-S1-14\fyp\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
