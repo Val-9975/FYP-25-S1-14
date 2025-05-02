@@ -554,7 +554,6 @@ def merchant_profile(request) :
         'state' : user.state,
         'country' : user.country,
         'zip_code' : user.zip_code,
-        #make sure user mode in model.py has these fields
 
     }
     return render(request, 'MerchantProfile.html', context)
@@ -632,9 +631,9 @@ def process_money_transfer(request):
         if not re.match(r'^\d{2}/\d{2}$', expiry_date):
             messages.error(request, "Invalid expiry date format.")
             return redirect('customer_dashboard')
-        # if is_expired(expiry_date):
-        #     messages.error(request, "Card is expired.")
-        #     return redirect('customer_dashboard')
+        if is_expired(expiry_date):
+            messages.error(request, "Card is expired.")
+            return redirect('customer_dashboard')
 
         # Validate amount
         try:
