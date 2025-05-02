@@ -1,0 +1,36 @@
+{
+    "merchant_id": "5",
+    "card_number": "4111111111111111",
+    "cardholder_name": "David Brown",
+    "expiry_date": "12/26",
+    "cvv": "123",
+    "amount": "11.00",
+    "currency": "SGD",
+    "transaction_id": "a33e44bb445a",
+    "timestamp": "2025-04-20T19:14:27.698317",
+    "billing_address": {
+        "address": "789 Pine Rd",
+        "city": "Denver",
+        "state": "CO",
+        "country": "USA"
+    }
+}
+
+{
+    "merchant_id": "5",
+    "card_number": "4111111111111111",
+    "cardholder_name": "David Brown",
+    "expiry_date": "12/26",
+    "cvv": "123",
+    "amount": "11.00",
+    "currency": "SGD",
+    "transaction_id": "d5dbdbe4b4e9",
+    "timestamp": "2025-04-27T14:40:10.370413",
+    "billing_address": {
+        "address": "789 Pine Rd",
+        "city": "Denver",
+        "state": "CO",
+        "country": "USA"
+    }
+}
+
