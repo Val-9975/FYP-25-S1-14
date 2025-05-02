@@ -77,7 +77,11 @@
                                     <strong>Created At:</strong> {{ complaint.created_at }}
                                 </p>
                                 <p class="text-[#4e7397]"><strong>Complained Against:</strong> {{ complaint.complained_against.email }}</p>
-                                <p class="text-[#4e7397] ticket-status"><strong>Ticket Status:</strong> {{ complaint.complaint_status }}</p>
+                                <p class="text-[#4e7397] ticket-status"><strong>Ticket Status:</strong> 
+                                    <span class="{% if complaint.complaint_status == 'Open' %}text-red-600{% elif complaint.complaint_status == 'Closed' %}text-green-600{% endif %}">
+                                        {{ complaint.complaint_status }}
+                                    </span>
+                                </p>
                                 <p class="text-[#4e7397] hidden closing-comment">
                                     <strong>Closing Comment:</strong> {{ complaint.closing_comment }}
                                 </p>
