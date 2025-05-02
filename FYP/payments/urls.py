@@ -20,6 +20,8 @@ urlpatterns = [
     path('dashboard/get-saved-payment-methods/', views.get_saved_payment_methods, name='get_saved_payment_methods'),
     path('payment-methods/<int:card_id>/', views.get_saved_card_detail, name='get_saved_card_detail'),
     path('delete-saved-card/<int:card_id>/', views.delete_saved_card, name='delete_saved_card'),
+    path('contact/submit_complaint/', views.submit_complaint, name='submit_complaint'),
+    path('complaint/success/', views.complaint_success, name='complaint_success'),
 
 
     
@@ -42,7 +44,6 @@ urlpatterns = [
     path('login/', views.handle_login, name='login'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('dashboard/sysAdmin/complaints/', views.complaints_view, name='complaints_view'),
-    path('dashboard/sysAdmin/submit_complaint/', views.submit_complaint, name='submit_complaint'),
     path('dashboard/sysAdmin/submit_complaint/viewSubmittedComplaints', views.view_submitted_complaints, name='view_submitted_complaints'),
     # Helpdesk stuff
     path('dashboard/Helpdesk/Tickets/', views.view_tickets, name='view_tickets'),

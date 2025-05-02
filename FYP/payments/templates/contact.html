@@ -134,38 +134,37 @@
         <h2 class="text-lg font-medium text-slate-600 mb-8">How can we help you today?</h2>
         
         <!-- Contact Options -->
-        <div class="flex flex-col gap-4 mb-10">
-          <a href="#" class="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
-            <div>
-              <p class="font-medium">Start a live chat</p>
-              <p class="text-sm text-slate-500">Typically replies in a few minutes</p>
-            </div>
-            <svg class="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
-            </svg>
-          </a>
-          
-          <a href="mailto:support@securepay.com" class="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
-            <div>
-              <p class="font-medium">Email</p>
-              <p class="text-sm text-slate-500">support@safepay.com</p>
-            </div>
-            <svg class="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
-            </svg>
-          </a>
-          
-          <div class="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-            <div>
-              <p class="font-medium">Call</p>
-              <p class="text-sm text-slate-500">(415) 555-1234</p>
-              <p class="text-sm text-slate-500">Mon-Fri 7am-6pm PT</p>
-            </div>
-            <svg class="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
-            </svg>
+          <div class="flex flex-col gap-4 mb-10">
+            <a href="#" class="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+              <div>
+                <p class="font-medium">Start a live chat</p>
+                <p class="text-sm text-slate-500">Typically replies in a few minutes</p>
+              </div>
+              <svg class="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
+              </svg>
+            </a>
+            
+            <a href="mailto:support@securepay.com" class="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+              <div>
+                <p class="font-medium">Email</p>
+                <p class="text-sm text-slate-500">support@safepay.com</p>
+              </div>
+              <svg class="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
+              </svg>
+            </a>
+            
+            <a href="{% url 'submit_complaint' %}" class="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+              <div>
+                <p class="font-medium">Submit a complaint</p>
+                <p class="text-sm text-slate-500">Submit a ticket. Will typically respond within 5 working days.</p>
+              </div>
+              <svg class="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M181.66,133.66l-80,80a8,8,0,1,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
+              </svg>
+            </a>
           </div>
-        </div>
 
           <!-- Back Button -->
           <div class="mt-6 flex justify-center">
@@ -179,13 +178,6 @@
               </a>
             {% endif %}
           </div>
-        
-        <a href="{% url 'submit_complaint' %}" class="floating-complaint-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Submit Complaint
-        </a>
 
         <!-- FAQs -->
         <div class="mt-12">
@@ -215,7 +207,8 @@
               <div class="faq-answer">
                 <div class="faq-content">
                   <p class="text-sm text-slate-600 leading-relaxed">
-                    blablabla
+                    You may top up your Safepay wallet via Debit or Credit card.
+                    However, once the amount has been added to the wallet it cannot be withdrawn back to your initial payment method.
                   </p>
                 </div>
               </div>
@@ -265,15 +258,6 @@
             item.classList.toggle('open');
           });
 
-        const floatBtn = document.querySelector('.floating-complaint-btn');
-        if (floatBtn) {
-          floatBtn.addEventListener('mouseenter', () => {
-            floatBtn.style.transform = 'translateY(-2px)';
-          });
-          floatBtn.addEventListener('mouseleave', () => {
-            floatBtn.style.transform = 'translateY(0)';
-          });
-        }
         });
       });
     </script>
