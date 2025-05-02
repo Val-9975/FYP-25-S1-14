@@ -20,6 +20,8 @@ urlpatterns = [
     path('dashboard/get-saved-payment-methods/', views.get_saved_payment_methods, name='get_saved_payment_methods'),
     path('payment-methods/<int:card_id>/', views.get_saved_card_detail, name='get_saved_card_detail'),
     path('delete-saved-card/<int:card_id>/', views.delete_saved_card, name='delete_saved_card'),
+    path('contact/submit_complaint/', views.submit_complaint, name='submit_complaint'),
+    path('complaint/success/', views.complaint_success, name='complaint_success'),
 
 
     
@@ -32,7 +34,7 @@ urlpatterns = [
     path('dashboard/systemadmin/viewTransactions/', views.sysadmin_view_transactions, name='sysadmin_view_transactions'),
     path('dashboard/systemadmin/', views.systemAdmin_dashboard, name='sysadmin_dashboard'),
     path('dashboard/systemadmin/manage-users/', views.sysadmin_manage_users, name='sysadmin_manage_users'),
-    path('dashboard/systemadmin/settings/', views.sysadmin_settings, name='sysadmin_settings'),
+    #path('dashboard/systemadmin/settings/', views.sysadmin_settings, name='sysadmin_settings'),  
     path('dashboard/sysadmin/settings/', views.sysadmin_settings, name='sysadmin_settings'),
     path('dashboard/update-security-protocol-text/', views.update_security_protocol_text, name='update_security_protocol_text'),
     path('dashboard/systemadmin/update-security/', views.update_security_protocols, name='update_security_protocols'),
@@ -42,7 +44,6 @@ urlpatterns = [
     path('login/', views.handle_login, name='login'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('dashboard/sysAdmin/complaints/', views.complaints_view, name='complaints_view'),
-    path('dashboard/sysAdmin/submit_complaint/', views.submit_complaint, name='submit_complaint'),
     path('dashboard/sysAdmin/submit_complaint/viewSubmittedComplaints', views.view_submitted_complaints, name='view_submitted_complaints'),
     # Helpdesk stuff
     path('dashboard/Helpdesk/Tickets/', views.view_tickets, name='view_tickets'),
