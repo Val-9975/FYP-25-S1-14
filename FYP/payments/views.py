@@ -936,6 +936,8 @@ def helpdesk_profile(request) :
     }
     return render(request, 'HelpdeskProfile.html', context)
 
+@login_required
+@role_required(ROLE_HELPDESK)
 def complaint_analytics(request):
     # Calculate total complaints for percentage calculations
     total_complaints = Complaint.objects.count()
