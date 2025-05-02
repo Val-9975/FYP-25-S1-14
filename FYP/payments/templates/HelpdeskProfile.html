@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Helpdesk Profile Page</title>
+  <title>{% block title %}Helpdesk Dashboard{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&display=swap"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-slate-50 font-['Work_Sans',sans-serif]">
 
@@ -43,7 +44,7 @@
                 <ul class="space-y-2">
                     <li><a href="{% url 'helpdesk_dashboard' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">Live Chat</a></li>
                     <li><a href="{% url 'view_tickets' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Tickets</a></li>
-                    <li><a href="#" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Analytics</a></li>
+                    <li><a href="{% url 'complaint_analytics' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Analytics</a></li>
                     <li><a href="{% url 'helpdesk_settings' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Settings</a></li>
                     <li><a href="{% url 'helpdesk_profile' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">HelpDesk Profile</a></li>
                 </ul>
@@ -148,9 +149,10 @@
   </div>
 
   <script src="https://unpkg.com/lucide@latest"></script>
-<script>
-  lucide.createIcons(); // This will render the icons
-</script>
+  <script>
+    lucide.createIcons();
+  </script>
+  {% block extra_scripts %}{% endblock %}
 
 </body>
 </html>
