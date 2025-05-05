@@ -38,7 +38,6 @@ urlpatterns = [
     path('dashboard/update-security-protocol-text/', views.update_security_protocol_text, name='update_security_protocol_text'),
     path('dashboard/systemadmin/update-security/', views.update_security_protocols, name='update_security_protocols'),
     path('dashboard/systemadmin/update-user-status/', views.update_user_status, name='update_user_status'),
-    path('dashboard/systemadmin/view-user-logs/', views.sysadmin_view_user_logs, name='sysadmin_view_user_logs'),
     path('suspend-customer/', views.suspend_customer, name='suspend_customer'),
     path('login/', views.handle_login, name='login'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
