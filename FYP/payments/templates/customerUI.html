@@ -13,29 +13,51 @@
         pointer-events: none;
         opacity: 0.5;
       }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background:rgb(253, 225, 229);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .header h3 {
+          color: #2C3E50;
+      }
     </style>
   </head>
   <body>
-    <div class="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
-         style='--select-button-svg: url("data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(78,115,151)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e"); font-family: "Work Sans", "Noto Sans", sans-serif;'>
-      <!-- Main container -->
+    <div
+      class="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
+      style='--select-button-svg: url(&apos;data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(78,115,151)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e&apos;); font-family: "Work Sans", "Noto Sans", sans-serif;'
+    >
       <div class="layout-container flex h-full grow flex-col">
-        <!-- Header -->
         <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3">
           <div class="flex items-center gap-4 text-[#0e141b]">
-            <div class="size-4">
+            <div class="size-8">
               <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clip-path="url(#clip0_6_535)">
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor"></path>
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
+                    fill="currentColor"
+                  ></path>
                 </g>
                 <defs>
-                  <clipPath id="clip0_6_535">
-                    <rect width="48" height="48" fill="white"></rect>
-                  </clipPath>
+                  <clipPath id="clip0_6_535"><rect width="48" height="48" fill="white"></rect></clipPath>
                 </defs>
               </svg>
             </div>
-            <h2 class="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em]">SafePay</h2>
+            <h2 class="text-[#0e141b] text-3xl font-bold leading-tight tracking-[-0.015em]">SafePay</h2>
+          </div>
+          <div class="header">
+            <h3>Welcome, {{ first_name }}!</h3>
+            <div class="profile">
+                
+            </div>
           </div>
           <button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 bg-[#e7edf3] text-[#0e141b] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
             <div class="text-[#0e141b]" data-icon="Gear" data-size="20px" data-weight="regular">
@@ -466,14 +488,14 @@
             return false;
           }
         
-          const [expMonth, expYear] = expiryDateInput.value.split('/');
+          {% comment %} const [expMonth, expYear] = expiryDateInput.value.split('/');
           const expiryDate = new Date(2000 + parseInt(expYear), parseInt(expMonth), 0);
           const now = new Date();
           if (expiryDate < now) {
             alert("Card is expired.");
             event.preventDefault();
             return false;
-          }
+          } {% endcomment %}
         
           return true;
         }

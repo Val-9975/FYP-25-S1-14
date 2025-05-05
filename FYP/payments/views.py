@@ -3,13 +3,15 @@ import threading
 import time
 import logging
 import random
+import json
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
+from django.db.models.functions import TruncDate
 from .models import MerchantTransaction, LegacyUser, Transaction, UserAccountStatus, Complaint, TokenVault
 from .forms import ComplaintForm
 from django.db import transaction as db_transaction
@@ -34,6 +36,8 @@ from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.urls import reverse
 from .decorators import role_required, ROLE_CUSTOMER, ROLE_MERCHANT, ROLE_ADMIN, ROLE_HELPDESK
+from collections import defaultdict
+import json
 
 
 logger = logging.getLogger(__name__)
@@ -56,6 +60,9 @@ def is_strong_password(password):
     if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
         return False, "Password must contain at least one special character (Eg. !,*,&...)."
     return True, ""
+
+def home(request):
+    return render(request, 'index.html')
 
 def create_user(request):
 
@@ -307,6 +314,18 @@ def merchant_dashboard(request):
     # Get count of pending transactions
     pending_count = merchant_transactions.filter(status='pending').count()
 
+   # Prepare data for the balance chart (e.g., total balance per day)
+    balance_data = (
+        merchant_transactions.filter(status='success')
+        .annotate(date=TruncDate('transaction_date'))  # Truncate the date to day-level
+        .values('date')
+        .annotate(total_balance=Sum('amount_sent'))
+        .order_by('date')
+    )
+
+    # Separate dates and balances for the chart
+    dates = [entry['date'].strftime('%Y-%m-%d') for entry in balance_data]
+    balances = [entry['total_balance'] for entry in balance_data]
 
     # Prepare the context with merchant information and filtered transactions
     context = {
@@ -529,6 +548,8 @@ def process_money_transfer(request):
         saved_card_id = request.POST.get('saved_card_id')
         expiry_date = request.POST.get('expiry_date', '')
         save_payment_method = request.POST.get('save_payment_method') == 'on'
+        cvv = request.POST.get('cvv')
+        currency = request.POST.get('currency')
 
         card_number = ''
         if saved_card_id:
@@ -621,7 +642,7 @@ def process_money_transfer(request):
                     logger.error(f"Failed to save payment method: {str(e)}")
         # Launch async processing
         print(f"DEBUG: Starting thread for transaction {transaction.id}", flush=True)
-        thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number))
+        thread = threading.Thread(target=process_payment_delayed, args=(transaction.id, amount, card_number, expiry_date, cvv, currency))
         thread.start()
 
         return redirect('view_purchase')
@@ -732,7 +753,7 @@ def get_saved_card_detail(request, card_id):
 
 
 # Bank Authorization
-def process_payment_delayed(transaction_id, amount, card_number):
+def process_payment_delayed(transaction_id, amount, card_number, expiry_date, cvv, currency):
     """
     Simulated delayed payment processing function.
     The status is updated after 10 seconds.
@@ -746,12 +767,12 @@ def process_payment_delayed(transaction_id, amount, card_number):
         print(f"Processing transaction {transaction.transaction_number}", flush=True)  # Debugging log
         
         max_retries = 2
-        retry_delay = 5  # seconds between retries
+        retry_delay = 5
         attempt = 0
         success = False
 
         while attempt < max_retries and not success:
-            print(f"Attempt {attempt + 1} to capture payment...")
+            print(f"Attempt {attempt + 1} to capture payment...", flush=True)
             time.sleep(retry_delay)
 
             transaction = MerchantTransaction.objects.get(id=transaction_id)
@@ -760,8 +781,10 @@ def process_payment_delayed(transaction_id, amount, card_number):
             if random.random() < 0.5:
                 transaction.status = 'success'
                 transaction.save()
-                print("Payment captured successfully.")
-                success = True            
+                print("Payment captured successfully.", flush=True)
+                success = True    
+
+                # Send merchant success email
                 send_mail(
                     subject='Payment Received from SafePay',
                     message=(
@@ -772,19 +795,77 @@ def process_payment_delayed(transaction_id, amount, card_number):
                         f"Please fulfill the order as soon as possible.\n\n"
                         f"– SafePay Gateway"
                     ),
-                    from_email=None,  # uses DEFAULT_FROM_EMAIL
-                    recipient_list=['testmerchantt1212@gmail.com'],
+                    from_email=None,
+                    recipient_list=[transaction.merchant.email],
                     fail_silently=False
                 )
+
+                # Send customer success email
+                send_mail(
+                    subject='Payment Receipt from SafePay',
+                    message=(
+                        f"Hi {transaction.customer_first_name},\n\n"
+                        f"Your payment of ${transaction.amount_sent} to {transaction.merchant.first_name} "
+                        f"{transaction.merchant.last_name} was successful.\n"
+                        f"Transaction ID: {transaction.transaction_number}\n\n"
+                        f"Thank you for using SafePay!\n\n"
+                        f"– SafePay Gateway"
+                    ),
+                    from_email=None,
+                    recipient_list=[transaction.customer_email],
+                    fail_silently=False
+                )
+
+                # Write to bank.txt
+                # Simulation of data being sent to the bank for authorisation
+                bank_data = {
+                    "merchant_id": str(transaction.merchant.pk),
+                    "card_number": card_number,  
+                    "cardholder_name": f"{transaction.customer_first_name} {transaction.customer_last_name}",
+                    "expiry_date": expiry_date,
+                    "cvv": cvv,
+                    "amount": str(transaction.amount_sent),
+                    "currency": currency,
+                    "transaction_id": transaction.transaction_number,
+                    "timestamp": datetime.now().isoformat(),
+                    "billing_address": {
+                        "address": transaction.address,
+                        "city": transaction.city,
+                        "state": transaction.state,
+                        "country": transaction.country
+                    }
+                }
+
+                with open("bank.txt", "a") as f:
+                    f.write(json.dumps(bank_data, indent=4))
+                    f.write("\n\n")
+
             else:
+                print("Payment failed. Retrying...", flush=True)
                 attempt += 1
-                if attempt < max_retries:
-                    print("Payment failed. Retrying...")
-                else:
-                    transaction.status = 'failed'
-                    transaction.save()
-                    print("All payment attempts failed.")
-            print(f"Transaction {transaction.transaction_number} updated to {transaction.status}")
+
+        if not success:
+            transaction = MerchantTransaction.objects.get(id=transaction_id)
+            transaction.status = 'failed'
+            transaction.save()
+            print(f"All payment attempts failed for transaction {transaction.transaction_number}", flush=True)
+
+            send_mail(
+                subject='Payment Failed Notification - SafePay',
+                message=(
+                    f"Hi {transaction.customer_first_name},\n\n"
+                    f"Unfortunately, your payment of ${transaction.amount_sent} to "
+                    f"{transaction.merchant.first_name} {transaction.merchant.last_name} "
+                    f"could not be processed.\n"
+                    f"Transaction ID: {transaction.transaction_number}\n\n"
+                    f"Please try again later or use a different payment method.\n\n"
+                    f"– SafePay Gateway"
+                ),
+                from_email=None,
+                recipient_list=[transaction.customer_email],
+                fail_silently=False
+            )
+
 
     except MerchantTransaction.DoesNotExist:
         print(f"Transaction {transaction_id} does not exist.")     

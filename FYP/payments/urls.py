@@ -1,12 +1,13 @@
 from django.urls import path
 from . import views
 from payments.views import submit_complaint
+from .forget_password import forgot_password
 
 urlpatterns = [
     path('create-user/', views.create_user, name='create_user'),
     path('my-transactions/', views.user_transactions, name='user_transactions'),
     path('change-password/', views.change_passwordProfile, name='change_passwordProfile'),
-    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('forgot-password/', forgot_password, name='forgot_password'),
     path('verify-otp-forgot/', views.verify_otp_forgot, name='verify_otp_forgot'),
     path('reset-password/', views.reset_password, name='reset_password'),
     # Add the customer dashboard URL:
@@ -51,6 +52,7 @@ urlpatterns = [
     path('dashboard/Helpdesk/LiveChat/', views.live_chat, name='live_chat'),
     path('dashboard/Helpdesk/Settings/', views.helpdesk_settings, name='helpdesk_settings'),
     path('dashboard/Helpdesk/Profile/', views.helpdesk_profile, name='helpdesk_profile'),
+    path('dashboard/Helpdesk/Analytics/', views.complaint_analytics, name='complaint_analytics'),
 
 ]
 
