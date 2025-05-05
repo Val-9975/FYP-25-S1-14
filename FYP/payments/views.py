@@ -454,18 +454,43 @@ def change_passwordProfile(request):
         'redirect_url': resolved_url
     })
 
+@login_required
+def submit_complaint(request):
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST)
+        if form.is_valid():
+            # Set the complainant (user) to the logged-in user
+            complaint = form.save(commit=False)
+            complaint.user = request.user  # Automatically set the logged-in user as the complainant
+            complaint.save()
+
+            messages.success(request, "Complaint submitted successfully.")
+            return redirect('complaint_success')  
+    else:
+        form = ComplaintForm()
+
+    return render(request, 'complaints.html', {'form': form})
+
+@login_required
+def complaint_success(request):
+    return render(request, 'complaint_success.html')
+
+@login_required
+def view_submitted_complaints(request):
+    role_id = request.user.role_id  
+    # Fetch complaints for the currently logged-in user
+    complaints = Complaint.objects.filter(user=request.user)
+    
+    return render(request, 'viewSubmittedComplaints.html', {'role_id': role_id, 'complaints': complaints})
 
 
-
-def process_payment(request):
-    # Placeholder logic; replace with your actual payment processing code.
-    return render(request, 'process_payment.html')
 
 def transaction_status(request, transaction_id):
     # Retrieve the transaction with the given transaction_id
     transaction = get_object_or_404(Transaction, transaction_id=transaction_id)
     return render(request, 'transaction_status.html', {'transaction': transaction})
 
+@login_required
 def user_transactions(request):
     # Ensure the user is authenticated (you can add @login_required decorator if needed)
     transactions = Transaction.objects.filter(user=request.user)
@@ -477,9 +502,10 @@ def custom_logout(request):
     return redirect('login')  # Redirect to login page after logout
 
 
-# Customer
+# /////////////////////////////////////////Customer/////////////////////////////////////////////////////
 
 @login_required
+@role_required(ROLE_CUSTOMER)
 def customer_profile(request) :
     user = request.user #get currently logged in user
 
@@ -500,6 +526,7 @@ def customer_profile(request) :
     return render(request, 'CustomerProfile.html', context)
 
 @login_required
+@role_required(ROLE_CUSTOMER)
 def top_up_wallet(request):
     if request.method == 'POST':
         top_up_amount = request.POST.get('top_up_amount', 0)
@@ -510,79 +537,9 @@ def top_up_wallet(request):
         return redirect('customer_dashboard')
     else:
         return render(request, 'topUpWallet.html')
-
-
-
+    
 @login_required
-def view_purchase(request):
-    # Filter by the logged-in customer's email
-    user_email = request.user.email
-    # Get all rows in merchant_transactions for this customer's email
-    purchases = MerchantTransaction.objects.filter(customer_email=user_email)
-
-    return render(request, 'viewPurchaseUI.html', {'transactions': purchases})
-
-def customer_ui(request):
-    return render(request, 'customerUI.html')
-
-def contact_support(request):
-    return render(request, 'contact.html')
-
-# Merchant
-
-@login_required
-def merchant_profile(request) :
-    user = request.user #get currently logged in user
-
-    context = {
-        'user_id' : user.pk,
-        'email' : user.email,
-        'first_name' : user.first_name,
-        'last_name' : user.last_name,
-        'phone_number' : user.phone_number,
-        'address' : user.address,
-        'city' : user.city,
-        'state' : user.state,
-        'country' : user.country,
-        'zip_code' : user.zip_code,
-
-    }
-    return render(request, 'MerchantProfile.html', context)
-
-def merchant_transactions_view(request):
-    transactions = MerchantTransaction.objects.all()  # Fetch all transactions
-    return render(request, 'transactions.html', {'transactions': transactions})
-
-def is_valid_card(card_number):
-    """ Validate credit card number using Luhn Algorithm """
-    card_number = card_number.replace(" ", "")  # Remove spaces
-
-    if not card_number.isdigit() or len(card_number) not in [13, 15, 16]:
-        return False
-
-    total = 0
-    reverse_digits = card_number[::-1]
-
-    for i, digit in enumerate(reverse_digits):
-        num = int(digit)
-        if i % 2 == 1:
-            num *= 2
-            if num > 9:
-                num -= 9
-        total += num
-
-    return total % 10 == 0
-
-def is_expired(expiry_date):
-    """ Check if the expiry date is in the future (MM/YY format) """
-    try:
-        exp_month, exp_year = map(int, expiry_date.split("/"))
-        exp_year += 2000  # Convert YY to YYYY
-        return datetime.date(exp_year, exp_month, 1) < datetime.date.today()
-    except:
-        return True  # If format is wrong, consider it expired
-
-@login_required
+@role_required(ROLE_CUSTOMER)
 def process_money_transfer(request):
     if request.method == 'POST':
         merchant_email = request.POST.get('merchant_email')
@@ -689,8 +646,15 @@ def process_money_transfer(request):
         thread.start()
 
         return redirect('view_purchase')
-
-
+    
+def is_expired(expiry_date):
+    """ Check if the expiry date is in the future (MM/YY format) """
+    try:
+        exp_month, exp_year = map(int, expiry_date.split("/"))
+        exp_year += 2000  # Convert YY to YYYY
+        return datetime.date(exp_year, exp_month, 1) < datetime.date.today()
+    except:
+        return True  # If format is wrong, consider it expired
 
 def match_card_brand(card_number, brand):
     card_number = card_number.replace(" ", "")
@@ -702,8 +666,57 @@ def match_card_brand(card_number, brand):
         return bool(re.match(r"^(5[1-5]\d{14}|2(2[2-9]\d{13}|[3-6]\d{14}|7[01]\d{13}|720\d{13}))$", card_number))
     else:
         return False
+    
+@login_required
+@role_required(ROLE_CUSTOMER)
+@require_POST
+def delete_saved_card(request, card_id):
+    try:
+        card = SavedPaymentMethod.objects.get(id=card_id, user=request.user)
+        card.delete()
+        return JsonResponse({'status': 'success'})
+    except SavedPaymentMethod.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Card not found'}, status=404)
 
 
+
+@login_required
+@role_required(ROLE_CUSTOMER)
+def view_purchase(request):
+    # Filter by the logged-in customer's email
+    user_email = request.user.email
+    # Get all rows in merchant_transactions for this customer's email
+    purchases = MerchantTransaction.objects.filter(customer_email=user_email)
+
+    return render(request, 'viewPurchaseUI.html', {'transactions': purchases})
+
+@login_required
+@role_required(ROLE_CUSTOMER)
+def customer_ui(request):
+    return render(request, 'customerUI.html')
+
+def contact_support(request):
+    return render(request, 'contact.html')
+
+def is_valid_card(card_number):
+    """ Validate credit card number using Luhn Algorithm """
+    card_number = card_number.replace(" ", "")  # Remove spaces
+
+    if not card_number.isdigit() or len(card_number) not in [13, 15, 16]:
+        return False
+
+    total = 0
+    reverse_digits = card_number[::-1]
+
+    for i, digit in enumerate(reverse_digits):
+        num = int(digit)
+        if i % 2 == 1:
+            num *= 2
+            if num > 9:
+                num -= 9
+        total += num
+
+    return total % 10 == 0
 
 
 @login_required
@@ -736,6 +749,7 @@ def get_saved_card_detail(request, card_id):
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
 
 
 # Bank Authorization
@@ -875,19 +889,55 @@ def complaints_view(request):
 
 
 
-# Admin
+# /////////////////////////////////////Merchant///////////////////////////////////////////
+
 @login_required
+@role_required(ROLE_MERCHANT)
+def merchant_profile(request) :
+    user = request.user #get currently logged in user
+
+    context = {
+        'user_id' : user.pk,
+        'email' : user.email,
+        'first_name' : user.first_name,
+        'last_name' : user.last_name,
+        'phone_number' : user.phone_number,
+        'address' : user.address,
+        'city' : user.city,
+        'state' : user.state,
+        'country' : user.country,
+        'zip_code' : user.zip_code,
+        #make sure user mode in model.py has these fields
+
+    }
+    return render(request, 'MerchantProfile.html', context)
+
+@login_required
+@role_required(ROLE_MERCHANT)
+def merchant_transactions_view(request):
+    transactions = MerchantTransaction.objects.all()  # Fetch all transactions
+    return render(request, 'transactions.html', {'transactions': transactions})
+
+
+# //////////////////////////////////////////////////Admin////////////////////////////////////////////////
+@login_required
+@role_required(ROLE_ADMIN)
 def sysadmin_view_transactions(request):
     # Retrieve all purchase transactions (latest first)
     transactions = MerchantTransaction.objects.all().order_by('-created_at')
     return render(request, 'SysAdminViewTransaction.html', {'transactions': transactions})
 
 
+@login_required
+@role_required(ROLE_ADMIN)
 def sysadmin_settings(request):
     protocol = SecurityProtocolDetail.objects.first()
-    print(f"Protocol: {protocol}")
-    return render(request, 'SysAdminSecuritySettings.html', {'security_protocol': protocol})
+    return render(request, 'SysAdminSecuritySettings.html', {
+        'security_protocol': protocol,
+    })
 
+@login_required
+@role_required(ROLE_ADMIN)
 def update_security_protocol_text(request):
     if request.method == 'POST':
         new_content = request.POST.get('security_content')
@@ -900,39 +950,8 @@ def update_security_protocol_text(request):
         messages.success(request, "Security protocol details updated successfully.")
     return redirect('sysadmin_settings')
 
-def sysadmin_view_user_logs(request):
-    # any context you want to pass in
-    return render(request, 'SysAdminViewUserLogs.html')
-
 @login_required
-def submit_complaint(request):
-    if request.method == 'POST':
-        form = ComplaintForm(request.POST)
-        if form.is_valid():
-            # Set the complainant (user) to the logged-in user
-            complaint = form.save(commit=False)
-            complaint.user = request.user  # Automatically set the logged-in user as the complainant
-            complaint.save()
-
-            return redirect('complaint_success')  
-    else:
-        form = ComplaintForm()
-
-    return render(request, 'complaints.html', {'form': form})
-
-@login_required
-def complaint_success(request):
-    return render(request, 'complaint_success.html')
-
-@login_required
-def view_submitted_complaints(request):
-    role_id = request.user.role_id  
-    # Fetch complaints for the currently logged-in user
-    complaints = Complaint.objects.filter(user=request.user)
-    
-    return render(request, 'viewSubmittedComplaints.html', {'role_id': role_id, 'complaints': complaints})
-
-@login_required
+@role_required(ROLE_ADMIN)
 def update_security_protocols(request):
     if request.method == 'POST':
         protocol_name = request.POST.get('protocol_name')
@@ -953,115 +972,9 @@ def update_security_protocols(request):
 
     else:
         return redirect('sysadmin_settings')
-
-
+    
 @login_required
-def view_tickets(request):
-    current_user = request.user.role_id
-
-    complaints = Complaint.objects.exclude(user=current_user)
-
-    context = {
-        'current_user': current_user,
-        'complaints': complaints
-    }
-
-    return render(request, 'tickets.html', context)
-
-
-@login_required
-def ticket_details(request, ticket_id):
-    # Fetch the ticket from the database
-    ticket = get_object_or_404(Complaint, id=ticket_id)
-
-    if request.method == 'POST':
-        # Handle form submission
-        form = TicketUpdateForm(request.POST, instance=ticket)
-        if form.is_valid():
-            form.save()
-            return redirect('ticket_details.html', ticket_id=ticket.id)
-    else:
-        # Display the form with the current ticket data
-        form = TicketUpdateForm(instance=ticket)
-
-    context = {
-        'ticket': ticket,
-        'form': form,
-    }
-
-    return render(request, 'ticket_details.html', context)
-
-def helpdesk_profile(request) :
-    user = request.user #get currently logged in user
-
-    context = {
-        'user_id' : user.pk,
-        'email' : user.email,
-        'first_name' : user.first_name,
-        'last_name' : user.last_name,
-        'phone_number' : user.phone_number,
-        'address' : user.address,
-        'city' : user.city,
-        'state' : user.state,
-        'country' : user.country,
-        'zip_code' : user.zip_code,
-        #make sure user mode in model.py has these fields
-
-    }
-    return render(request, 'HelpdeskProfile.html', context)
-
-@login_required
-@role_required(ROLE_HELPDESK)
-def complaint_analytics(request):
-    # Calculate total complaints for percentage calculations
-    total_complaints = Complaint.objects.count()
-    
-    # 1. Complaints by Category
-    category_data = defaultdict(int)
-    for complaint in Complaint.objects.all():
-        category_data[complaint.category] += 1
-    
-    # 2. Complaint Status Distribution
-    status_data = defaultdict(int)
-    for complaint in Complaint.objects.all():
-        status_data[complaint.complaint_status] += 1
-    
-    # 3. Complaints Over Time (Last 30 days)
-    timeline_data = defaultdict(int)
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=30)
-    
-    # Initialize all dates in the range with 0
-    for day in (start_date + timedelta(n) for n in range(31)):
-        timeline_data[day.strftime('%Y-%m-%d')] = 0
-    
-    # Populate with actual data
-    for complaint in Complaint.objects.filter(created_at__gte=start_date):
-        day = complaint.created_at.strftime('%Y-%m-%d')
-        timeline_data[day] += 1
-    
-    # Prepare data for JSON serialization
-    context = {
-        'category_labels': json.dumps(list(category_data.keys())),
-        'category_data': json.dumps(list(category_data.values())),
-        'status_labels': json.dumps(list(status_data.keys())),
-        'status_data': json.dumps(list(status_data.values())),
-        'timeline_labels': json.dumps(sorted(timeline_data.keys())),
-        'timeline_data': json.dumps([timeline_data[day] for day in sorted(timeline_data.keys())]),
-    }
-    
-    return render(request, 'analytics.html', context)
-
-
-@login_required
-def live_chat(request):
-    return render(request, 'HelpDeskUI.html')
-
-@login_required
-def helpdesk_settings(request):
-    return render(request, 'HelpdeskSettings.html')
-
-@login_required
+@role_required(ROLE_ADMIN)
 def suspend_customer(request):
     if request.method == 'POST':
         transaction_id = request.POST.get('transaction_id')
@@ -1095,7 +1008,7 @@ def suspend_customer(request):
 
 
 @login_required
-
+@role_required(ROLE_ADMIN)
 def sysadmin_manage_users(request):
     user_statuses = UserAccountStatus.objects.all()
     return render(request, 'SysAdminManageStatus.html', {'user_statuses': user_statuses})
@@ -1104,6 +1017,7 @@ def sysadmin_manage_users(request):
 
 @csrf_exempt
 @login_required
+@role_required(ROLE_ADMIN)
 def update_user_status(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -1122,18 +1036,81 @@ def update_user_status(request):
 
     else:
         return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
-    
+
+
+# //////////////////////////////////////////////////Helpdesk////////////////////////////////////////////////
+@login_required
+@role_required(ROLE_HELPDESK)
+def view_tickets(request):
+    current_user = request.user.role_id
+
+    complaints = Complaint.objects.exclude(user=current_user)
+
+    context = {
+        'current_user': current_user,
+        'complaints': complaints
+    }
+
+    return render(request, 'tickets.html', context)
+
+
+@login_required
+@role_required(ROLE_HELPDESK)
+def ticket_details(request, ticket_id):
+    # Fetch the ticket from the database
+    ticket = get_object_or_404(Complaint, id=ticket_id)
+
+    if request.method == 'POST':
+        # Handle form submission
+        form = TicketUpdateForm(request.POST, instance=ticket)
+        if form.is_valid():
+            form.save()
+            return redirect('ticket_details.html', ticket_id=ticket.id)
+    else:
+        # Display the form with the current ticket data
+        form = TicketUpdateForm(instance=ticket)
+
+    context = {
+        'ticket': ticket,
+        'form': form,
+    }
+
+    return render(request, 'ticket_details.html', context)
+
+@login_required
+@role_required(ROLE_HELPDESK)
+def helpdesk_profile(request) :
+    user = request.user #get currently logged in user
+
+    context = {
+        'user_id' : user.pk,
+        'email' : user.email,
+        'first_name' : user.first_name,
+        'last_name' : user.last_name,
+        'phone_number' : user.phone_number,
+        'address' : user.address,
+        'city' : user.city,
+        'state' : user.state,
+        'country' : user.country,
+        'zip_code' : user.zip_code,
+        #make sure user mode in model.py has these fields
+
+    }
+    return render(request, 'HelpdeskProfile.html', context)
+
+
+@login_required
+@role_required(ROLE_HELPDESK)
+def live_chat(request):
+    return render(request, 'HelpDeskUI.html')
+
+@login_required
+@role_required(ROLE_HELPDESK)
+def helpdesk_settings(request):
+    return render(request, 'HelpdeskSettings.html')
+
 
 @login_required
 def test(request):
     return render(request, 'Something.html')
 
-@login_required
-@require_POST
-def delete_saved_card(request, card_id):
-    try:
-        card = SavedPaymentMethod.objects.get(id=card_id, user=request.user)
-        card.delete()
-        return JsonResponse({'status': 'success'})
-    except SavedPaymentMethod.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Card not found'}, status=404)
