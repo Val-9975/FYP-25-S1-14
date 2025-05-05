@@ -4,7 +4,6 @@ from payments.views import submit_complaint
 
 urlpatterns = [
     path('create-user/', views.create_user, name='create_user'),
-    path('pay/', views.process_payment, name='process_payment'),
     path('my-transactions/', views.user_transactions, name='user_transactions'),
     path('change-password/', views.change_passwordProfile, name='change_passwordProfile'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
@@ -34,7 +33,6 @@ urlpatterns = [
     path('dashboard/systemadmin/viewTransactions/', views.sysadmin_view_transactions, name='sysadmin_view_transactions'),
     path('dashboard/systemadmin/', views.systemAdmin_dashboard, name='sysadmin_dashboard'),
     path('dashboard/systemadmin/manage-users/', views.sysadmin_manage_users, name='sysadmin_manage_users'),
-    path('dashboard/systemadmin/settings/', views.sysadmin_settings, name='sysadmin_settings'),
     path('dashboard/sysadmin/settings/', views.sysadmin_settings, name='sysadmin_settings'),
     path('dashboard/update-security-protocol-text/', views.update_security_protocol_text, name='update_security_protocol_text'),
     path('dashboard/systemadmin/update-security/', views.update_security_protocols, name='update_security_protocols'),

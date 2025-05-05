@@ -108,11 +108,11 @@ WSGI_APPLICATION = 'custom_gateway.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'db',           # Replace with your MySQL database name
+        'NAME': 'gateway',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
-        'PASSWORD': 'password',              # Replace with your MySQL password
+        'PASSWORD': '1234',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
-        'PORT': '3306',              # Default MySQL port
+        'PORT': '3307',              # Default MySQL port
     }
 }
 
