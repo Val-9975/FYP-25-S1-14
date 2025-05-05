@@ -849,12 +849,6 @@ def sysadmin_view_transactions(request):
 
 @login_required
 @role_required(ROLE_ADMIN)
-def sysadmin_view_user_logs(request):
-    # any context you want to pass in
-    return render(request, 'SysAdminViewUserLogs.html')
-
-@login_required
-@role_required(ROLE_ADMIN)
 def sysadmin_settings(request):
     protocol = SecurityProtocolDetail.objects.first()
     return render(request, 'SysAdminSecuritySettings.html', {
