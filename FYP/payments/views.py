@@ -1098,6 +1098,48 @@ def helpdesk_profile(request) :
     }
     return render(request, 'HelpdeskProfile.html', context)
 
+@login_required
+@role_required(ROLE_HELPDESK)
+def complaint_analytics(request):
+    # Calculate total complaints for percentage calculations
+    total_complaints = Complaint.objects.count()
+    
+    # 1. Complaints by Category
+    category_data = defaultdict(int)
+    for complaint in Complaint.objects.all():
+        category_data[complaint.category] += 1
+    
+    # 2. Complaint Status Distribution
+    status_data = defaultdict(int)
+    for complaint in Complaint.objects.all():
+        status_data[complaint.complaint_status] += 1
+    
+    # 3. Complaints Over Time (Last 30 days)
+    timeline_data = defaultdict(int)
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=30)
+    
+    # Initialize all dates in the range with 0
+    for day in (start_date + timedelta(n) for n in range(31)):
+        timeline_data[day.strftime('%Y-%m-%d')] = 0
+    
+    # Populate with actual data
+    for complaint in Complaint.objects.filter(created_at__gte=start_date):
+        day = complaint.created_at.strftime('%Y-%m-%d')
+        timeline_data[day] += 1
+    
+    # Prepare data for JSON serialization
+    context = {
+        'category_labels': json.dumps(list(category_data.keys())),
+        'category_data': json.dumps(list(category_data.values())),
+        'status_labels': json.dumps(list(status_data.keys())),
+        'status_data': json.dumps(list(status_data.values())),
+        'timeline_labels': json.dumps(sorted(timeline_data.keys())),
+        'timeline_data': json.dumps([timeline_data[day] for day in sorted(timeline_data.keys())]),
+    }
+    
+    return render(request, 'analytics.html', context)
+
 
 @login_required
 @role_required(ROLE_HELPDESK)
