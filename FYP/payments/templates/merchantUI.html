@@ -8,6 +8,8 @@
   <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 
     <style>
     body {
@@ -73,21 +75,6 @@
     .success { color: green; font-weight: bold; }
     .pending { color: orange; font-weight: bold; }
     .failed { color: red; font-weight: bold; }
-
-        /* Dropdown Button */
-    .dropbtn {
-        background-color: #04AA6D;
-        color: white;
-        padding: 16px;
-        font-size: 16px;
-        border: none;
-        cursor: pointer;
-      }
-  
-      /* Dropdown button on hover & focus */
-      .dropbtn:hover, .dropbtn:focus {
-        background-color: #3e8e41;
-      }
       
       /* The search field */
       #myInput {
@@ -128,9 +115,6 @@
         display: block;
       }
       
-      /* Change color of dropdown links on hover */
-      .dropdown-content a:hover {background-color: #f1f1f1be}
-      
       /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
       .show {display:block;}
       
@@ -140,15 +124,18 @@
       }
 
       .dropdown-content {
-        display: none;
         position: absolute;
         background-color: white;
-        min-width: 150px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        min-width: max-content;  /* Automatically size to the longest item */
+        padding: 8px 0;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
         z-index: 1;
         border-radius: 8px;
-        padding: 8px 0;
+        white-space: nowrap;
+        overflow: visible;
+        right: 0; /* Align to the right of the parent */
       }
+      
 
       .dropdown-content a {
         color: #0e141b;
@@ -159,7 +146,7 @@
       }
 
       .dropdown-content a:hover {
-        background-color: #f1f1f1;
+        background-color: #3e8e41;
       }
 
       .dropdown:hover .dropdown-content {
@@ -174,7 +161,7 @@
       style='--select-button-svg: url(&apos;data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(78,115,151)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e&apos;); font-family: "Work Sans", "Noto Sans", sans-serif;'
     >
       <div class="layout-container flex h-full grow flex-col">
-        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3">
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3" style="background-color: #007bff;">
           <div class="flex items-center gap-4 text-[#0e141b]">
             <div class="size-8">
               <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -208,10 +195,16 @@
               </div>
             </button>
             <div class="dropdown-content">
-              <a href="#">Profile</a>
-              <a href="#">Settings</a>
-              <a href="{% url 'logout' %}">Logout</a>
-          </div>          
+              <a href="{% url 'merchant_profile' %}?dashboard=merchant">
+                <i class="fas fa-user"></i> Profile
+              </a>
+              <a href="{% url 'contact_support' %}">
+                <i class="fas fa-headset"></i> Contact Support
+              </a>
+              <a href="{% url 'logout' %}">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </a>
+            </div>       
           </div>
         </header>
         
@@ -222,7 +215,7 @@
               <button onclick="toggleDropdown()" class="rounded-xl h-10 px-4 bg-[#1980e6] text-white text-sm font-bold">Filter</button>
               <div id="filterDropdown" class="absolute bg-white shadow-md rounded-xl mt-2 p-4 hidden">
                 <select id="statusFilter" class="border p-3 rounded-md w-80" onchange="applyFilter()">
-                  <option value="">Filter by Status</option>
+                  <option value="">Filter by All</option>
                   <option value="success" {% if request.GET.status == 'success' %}selected{% endif %}>Success</option>
                   <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
                   <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Failed</option>
@@ -293,12 +286,7 @@
             </div>
 
         </main>
-        <div class="flex px-4 py-3 justify-center">
-          <a href="{% url 'contact_support' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]">
-              <span class="truncate">Contact Support</span>
-          </a>
-      </div>
-      
+     
     </div>
 
 
