@@ -6,6 +6,8 @@ import random
 import json
 import re
 from datetime import datetime, timedelta
+from django.utils.timezone import now, timedelta
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -20,7 +22,7 @@ from .login import handle_login
 from .logout import custom_logout
 from decimal import Decimal, InvalidOperation
 from .models import SecurityProtocol, SecurityProtocolDetail
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
@@ -152,11 +154,50 @@ def create_user(request):
 
 def handle_login(request):
     if request.method == "POST":
-        if authenticate_user(request):  # Calls function from login.py
-            return redirect('verify_otp')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        try:
+            user_status = UserAccountStatus.objects.get(email=email)
+        except UserAccountStatus.DoesNotExist:
+            user_status = None
+
+        # Handle lockout
+        if user_status and user_status.lockout_until and user_status.lockout_until > timezone.now():
+            remaining = int((user_status.lockout_until - timezone.now()).total_seconds() / 60)
+            return HttpResponse(
+                f"<script>alert('Your account is temporarily locked. Try again in {remaining} minutes.');window.location.href='/login';</script>"
+            )
+
+        result = authenticate_user(request)
+
+        if result is True:
+            return redirect('verify_otp')  # Go to OTP page
+        elif isinstance(result, HttpResponse):
+            return result  # Either suspended or no status
         else:
-            messages.error(request, "Invalid email or password.")
-            return render(request, 'login.html')
+            # Track failed attempts
+            if user_status:
+                user_status.failed_attempts += 1
+                attempts_left = 3 - user_status.failed_attempts
+
+                if user_status.failed_attempts >= 3:
+                    user_status.lockout_until = timezone.now() + timedelta(minutes=10)
+                    user_status.failed_attempts = 0
+                    user_status.save()
+                    return HttpResponse(
+                        "<script>alert('Your account has been locked out temporarily for 10 minutes.');window.location.href='/login';</script>"
+                    )
+                else:
+                    user_status.save()
+                    return HttpResponse(
+                        f"<script>alert('Incorrect attempt, {attempts_left} tries left');window.location.href='/login';</script>"
+                    )
+
+            return HttpResponse(
+                "<script>alert('Invalid email or password.');window.location.href='/login';</script>"
+            )
+
     return render(request, 'login.html')
 
 
@@ -174,6 +215,7 @@ def verify_otp(request):
             return render(request, 'verify_otp.html')
 
     return render(request, 'verify_otp.html')  # Ensure it always returns an HttpResponse
+
 
 def verify_otp_forgot(request):
     if request.method == 'POST':
@@ -194,9 +236,6 @@ def verify_otp_forgot(request):
 
     return render(request, 'verifyOTPForResetPassword.html')
 
-
-from django.contrib.auth.hashers import make_password
-import logging
 
 def reset_password(request):
     email = request.session.get('fp_email')
@@ -244,28 +283,35 @@ def custom_login(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
-        user = authenticate(request, username=email, password=password)
-        if user is not None:
-            try:
-                # Check if the user's account is suspended
-                account_status = UserAccountStatus.objects.get(email=email)
-                if account_status.account_status == "Suspended":
-                    messages.error(request, "Your account is under review and has been temporarily suspended")
-                    return render(request, "login.html")
-            except UserAccountStatus.DoesNotExist:
-                pass
 
+        # Check if account is suspended BEFORE authenticating
+        try:
+            user_status = UserAccountStatus.objects.get(email=email)
+            if user_status.account_status == 'Suspended':
+                return HttpResponse(
+                    "<script>alert('Your account is under review and has been temporarily suspended.');"
+                    "window.location.href='/login';</script>"
+                )
+        except UserAccountStatus.DoesNotExist:
+            pass  # No status entry; continue as normal
+
+        user = authenticate(request, username=email, password=password)
+
+        if user is not None:
             # Generate an OTP and store it (along with the credentials) in the session
             otp = random.randint(100000, 999999)
-            request.session['otp'] = otp
-            request.session['email'] = email
-            request.session['password'] = password
-            print(f"Your OTP is: {otp}")  # For development/testing
+            request.session["otp"] = otp
+            request.session["email"] = email
+            request.session["password"] = password
+            print(f"[DEBUG] OTP for {email} is: {otp}")  # For development/testing
 
-            # Redirect to the OTP verification page
-            return redirect('verify_otp')
-        else:
-            messages.error(request, "Invalid login credentials")
+            return redirect("verify_otp")
+        
+        # Show this only if the user is not suspended and credentials are wrong
+        return HttpResponse(
+            "<script>alert('Invalid email or password.'); window.location.href='/login';</script>"
+        )
+
     return render(request, "login.html")
 
 
@@ -529,14 +575,49 @@ def customer_profile(request) :
 @role_required(ROLE_CUSTOMER)
 def top_up_wallet(request):
     if request.method == 'POST':
-        top_up_amount = request.POST.get('top_up_amount', 0)
-        user = request.user  # This is your LegacyUser
-        user.wallet_balance += Decimal(top_up_amount)
+        user = request.user
+
+        # Get form inputs
+        top_up_amount = request.POST.get('top_up_amount')
+        payment_method = request.POST.get('payment_method')
+        card_number = request.POST.get('card_number')
+        expiry_date = request.POST.get('expiry_date')
+        cvv = request.POST.get('cvv')
+
+        # Validate top-up amount
+        try:
+            top_up_amount = Decimal(top_up_amount)
+            if top_up_amount <= 0:
+                raise ValueError
+        except:
+            messages.error(request, "Invalid top-up amount.")
+            return redirect('top_up_wallet')
+
+        # Validate card number structure (Luhn) and brand match
+        if not is_valid_card(card_number):
+            messages.error(request, "Invalid card number.")
+            return redirect('top_up_wallet')
+        if not match_card_brand(card_number, payment_method):
+            messages.error(request, f"Card number does not match {payment_method}.")
+            return redirect('top_up_wallet')
+
+        # Validate expiry format & that it’s not expired
+        if not re.match(r'^\d{2}/\d{2}$', expiry_date) or is_expired(expiry_date):
+            messages.error(request, "Card is expired or format is invalid.")
+            return redirect('top_up_wallet')
+
+        # Validate CVV
+        if not re.match(r'^\d{3}$', cvv):
+            messages.error(request, "CVV must be exactly 3 digits.")
+            return redirect('top_up_wallet')
+
+        # All checks passed → update wallet
+        user.wallet_balance += top_up_amount
         user.save(update_fields=['wallet_balance'])
-        messages.success(request, f"Successfully topped up your wallet by ${top_up_amount}!")
+        messages.success(request, f"Topped up ${top_up_amount} successfully!")
         return redirect('customer_dashboard')
-    else:
-        return render(request, 'topUpWallet.html')
+
+    return render(request, 'topUpWallet.html')
     
 @login_required
 @role_required(ROLE_CUSTOMER)
@@ -563,6 +644,48 @@ def process_money_transfer(request):
                 return redirect('customer_dashboard')
         else:
             card_number = request.POST.get('card_number', '')
+
+        # If payment method is SafePay Wallet, skip card validation
+        if payment_method == "SAFEPAY WALLET":
+            try:
+                amount = Decimal(amount_str)
+                if amount <= 0:
+                    raise ValueError
+            except Exception:
+                messages.error(request, "Invalid amount.")
+                return redirect('customer_dashboard')
+
+            if request.user.wallet_balance < amount:
+                messages.error(request, "Insufficient wallet balance.")
+                return redirect('customer_dashboard')
+
+            # Deduct balance and create successful transaction
+            transaction_number = str(uuid.uuid4()).replace('-', '')[:12]
+            merchant = get_object_or_404(LegacyUser, email=merchant_email, role_id=2)
+            user = request.user
+
+            with db_transaction.atomic():
+                user.wallet_balance -= amount
+                user.save(update_fields=['wallet_balance'])
+                MerchantTransaction.objects.create(
+                    merchant=merchant,
+                    customer_email=user.email,
+                    customer_first_name=user.first_name,
+                    customer_last_name=user.last_name,
+                    transaction_number=transaction_number,
+                    amount_sent=amount,
+                    payment_method=payment_method,
+                    phone_number=user.phone_number,
+                    address=user.address,
+                    city=user.city,
+                    state=user.state,
+                    country=user.country,
+                    status='success'  # Immediate success for wallet payments
+                )
+
+            messages.success(request, "Payment sent via SafePay Wallet.")
+            return redirect('view_purchase')
+
 
         # Validate card number using Luhn algorithm
         if not is_valid_card(card_number):
@@ -648,13 +771,15 @@ def process_money_transfer(request):
         return redirect('view_purchase')
     
 def is_expired(expiry_date):
-    """ Check if the expiry date is in the future (MM/YY format) """
     try:
-        exp_month, exp_year = map(int, expiry_date.split("/"))
-        exp_year += 2000  # Convert YY to YYYY
-        return datetime.date(exp_year, exp_month, 1) < datetime.date.today()
-    except:
-        return True  # If format is wrong, consider it expired
+        exp_month, exp_year = map(int, expiry_date.strip().split("/"))
+        exp_year += 2000 if exp_year < 100 else 0  # handles YY format
+        expiry = datetime(exp_year, exp_month, 1)
+        now = datetime.now()
+        return expiry < datetime(now.year, now.month, 1)
+    except Exception as e:
+        print(f"[DEBUG] Expiry parsing error: {e}")
+        return True  # Treat any parsing failure as expired
 
 def match_card_brand(card_number, brand):
     card_number = card_number.replace(" ", "")
@@ -683,12 +808,36 @@ def delete_saved_card(request, card_id):
 @login_required
 @role_required(ROLE_CUSTOMER)
 def view_purchase(request):
-    # Filter by the logged-in customer's email
     user_email = request.user.email
-    # Get all rows in merchant_transactions for this customer's email
+    query = request.GET.get('q', '').strip().lower()
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
     purchases = MerchantTransaction.objects.filter(customer_email=user_email)
 
-    return render(request, 'viewPurchaseUI.html', {'transactions': purchases})
+    if query:
+        purchases = purchases.filter(
+            transaction_number__icontains=query
+        ) | purchases.filter(
+            payment_method__icontains=query
+        )
+
+    if start_date and end_date:
+        try:
+            # Convert string to datetime.date
+            start = datetime.strptime(start_date, "%Y-%m-%d").date()
+            end = datetime.strptime(end_date, "%Y-%m-%d").date()
+            # Include the whole end day
+            purchases = purchases.filter(transaction_date__date__gte=start, transaction_date__date__lte=end + timedelta(days=1))
+        except ValueError:
+            messages.error(request, "Invalid date format. Use YYYY-MM-DD.")
+
+    return render(request, 'viewPurchaseUI.html', {
+        'transactions': purchases,
+        'query': query,
+        'start_date': start_date,
+        'end_date': end_date,
+    })
 
 @login_required
 @role_required(ROLE_CUSTOMER)
@@ -923,9 +1072,31 @@ def merchant_transactions_view(request):
 @login_required
 @role_required(ROLE_ADMIN)
 def sysadmin_view_transactions(request):
-    # Retrieve all purchase transactions (latest first)
-    transactions = MerchantTransaction.objects.all().order_by('-created_at')
-    return render(request, 'SysAdminViewTransaction.html', {'transactions': transactions})
+    transactions = MerchantTransaction.objects.select_related('merchant').order_by('-created_at')
+
+    # Suspicious multiple transactions logic
+    suspicious_multiple = set()
+    customer_timestamps = defaultdict(list)
+
+    for tx in transactions:
+        customer_email = tx.customer_email
+        customer_timestamps[customer_email].append(tx.created_at)
+
+    for email, times in customer_timestamps.items():
+        times.sort()
+        for i in range(len(times) - 2):
+            if (times[i+2] - times[i]) <= timedelta(minutes=1):
+                suspicious_multiple.update(
+                    t.id for t in transactions
+                    if t.customer_email == email and times[i] <= t.created_at <= times[i+2]
+                )
+                break
+
+    return render(request, 'SysAdminViewTransaction.html', {
+        'transactions': transactions,
+        'suspicious_ids': suspicious_multiple,
+    })
+
 
 
 @login_required
@@ -1010,8 +1181,25 @@ def suspend_customer(request):
 @login_required
 @role_required(ROLE_ADMIN)
 def sysadmin_manage_users(request):
-    user_statuses = UserAccountStatus.objects.all()
-    return render(request, 'SysAdminManageStatus.html', {'user_statuses': user_statuses})
+    # Sync customers and merchants only
+    all_users = LegacyUser.objects.filter(role_id__in=[1, 2])
+    for user in all_users:
+        if not UserAccountStatus.objects.filter(email=user.email).exists():
+            UserAccountStatus.create_user_status(user)
+
+    # Filter logic based on status
+    status_filter = request.GET.get('status_filter', 'all')
+    if status_filter == 'Available':
+        user_statuses = UserAccountStatus.objects.filter(role_id__in=[1, 2], account_status='Available')
+    elif status_filter == 'Suspended':
+        user_statuses = UserAccountStatus.objects.filter(role_id__in=[1, 2], account_status='Suspended')
+    else:
+        user_statuses = UserAccountStatus.objects.filter(role_id__in=[1, 2])
+
+    return render(request, 'SysAdminManageStatus.html', {
+        'user_statuses': user_statuses,
+        'selected_filter': status_filter
+    })
 
 
 

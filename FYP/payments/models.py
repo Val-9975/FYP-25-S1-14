@@ -3,6 +3,9 @@ from django.conf import settings
 from cryptography.fernet import Fernet
 from django.utils.functional import cached_property
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils import timezone
 import uuid
 
 class Transaction(models.Model):
@@ -173,11 +176,35 @@ class UserAccountStatus(models.Model):
     zip_code = models.CharField(max_length=20, null=True, blank=True)
     role_id = models.IntegerField()
     account_status = models.CharField(max_length=20, default='Available')
+    status_name = models.CharField(max_length=100)
+    description = models.TextField()
+    failed_attempts = models.IntegerField(default=0)
+    lockout_until = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = 'user_account_status'
-        managed = False  
-        
+        managed = True  
+    
+    @classmethod
+    def create_user_status(cls, user):
+        """
+        Create a corresponding UserAccountStatus from a LegacyUser instance.
+        """
+        return cls.objects.create(
+            email=user.email,
+            password=user.password,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            phone_number=user.phone_number,
+            address=user.address,
+            city=user.city,
+            state=user.state,
+            country=user.country,
+            zip_code=user.zip_code,
+            role_id=user.role_id,
+            status_name='Active',
+            description='Account created'
+        )
 
 class SavedPaymentMethod(models.Model):
     user = models.ForeignKey(
