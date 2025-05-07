@@ -39,16 +39,16 @@
     <div class="flex flex-1">
 
             <!-- Sidebar -->
-            <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
-                <h2 class="text-lg font-bold text-[#0e141b] mb-4">Dashboard</h2>
-                <ul class="space-y-2">
-                    <li><a href="{% url 'helpdesk_dashboard' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">Live Chat</a></li>
-                    <li><a href="{% url 'view_tickets' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Tickets</a></li>
-                    <li><a href="{% url 'complaint_analytics' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Analytics</a></li>
-                    <li><a href="{% url 'helpdesk_settings' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Settings</a></li>
-                    <li><a href="{% url 'helpdesk_profile' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">HelpDesk Profile</a></li>
-                </ul>
-            </div>
+  <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
+    <h2 class="text-lg font-bold text-[#0e141b] mb-4">Dashboard</h2>
+    <ul class="space-y-2">
+        <li><a href="{% url 'helpdesk_dashboard' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Live Chat</a></li>
+        <li><a href="{% url 'view_tickets' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Tickets</a></li>
+        <li><a href="{% url 'complaint_analytics' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Analytics</a></li>
+        <li><a href="{% url 'helpdesk_settings' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Settings</a></li>
+        <li><a href="{% url 'helpdesk_profile' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">HelpDesk Profile</a></li>
+    </ul>
+</div>
 
       <!-- Helpdesk User Details -->
       <main class="flex-1 p-8">
@@ -138,12 +138,6 @@
 
           </div>
         </div>
-                <!-- Change Password Button -->
-                <div class="mt-6">
-                    <a href="{% url 'change_passwordProfile' %}" class="inline-block bg-blue-600 text-white font-bold px-6 py-2 rounded-xl hover:bg-blue-700 transition">
-                        Change Password
-                    </a>
-                </div>
       </main>
     </div>
   </div>
