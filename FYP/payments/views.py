@@ -21,7 +21,7 @@ from .forms import TicketUpdateForm
 from .login import handle_login
 from .logout import custom_logout
 from decimal import Decimal, InvalidOperation
-from .models import SecurityProtocol, SecurityProtocolDetail
+from .models import SecurityProtocol, SecurityProtocolDetail, Complaint
 from django.http import JsonResponse, HttpResponse
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
@@ -394,26 +394,21 @@ def merchant_dashboard(request):
 
     return render(request, 'merchantUI.html', context)
 
-@login_required
-@role_required(ROLE_HELPDESK)
-def helpDesk_dashboard(request) :
-    user = request.user #get currently logged in user
-
+def helpDesk_dashboard(request):
     context = {
-        'user_id' : user.pk,
-        'email' : user.email,
-        'first_name' : user.first_name,
-        'last_name' : user.last_name,
-        'phone_number' : user.phone_number,
-        'address' : user.address,
-        'city' : user.city,
-        'state' : user.state,
-        'country' : user.country,
-        'zip_code' : user.zip_code,
-        #make sure user mode in model.py has these fields
-
+        'open_complaints_count': Complaint.objects.filter(complaint_status='Open').count(),
+        'resolved_today_count': Complaint.objects.filter(
+            complaint_status='Resolved',
+            created_at__date=timezone.now().date()
+        ).count(),
+        'avg_response_time': "2h 15m",  # You'll need to calculate this
+        'recent_complaints': Complaint.objects.order_by('-created_at')[:5],
+        'recent_activities': [
+            {'type': 'update', 'description': 'You updated complaint #1245', 'timestamp': timezone.now() - timedelta(hours=2)},
+            {'type': 'resolve', 'description': 'You resolved complaint #1243', 'timestamp': timezone.now() - timedelta(days=1)},
+        ]
     }
-    return render(request, 'HelpDeskUI.html', context)
+    return render(request, 'HelpdeskUI.html', context)
 
 @login_required
 @role_required(ROLE_ADMIN)
@@ -1254,7 +1249,7 @@ def ticket_details(request, ticket_id):
         form = TicketUpdateForm(request.POST, instance=ticket)
         if form.is_valid():
             form.save()
-            return redirect('ticket_details.html', ticket_id=ticket.id)
+            return redirect('view_tickets')
     else:
         # Display the form with the current ticket data
         form = TicketUpdateForm(instance=ticket)

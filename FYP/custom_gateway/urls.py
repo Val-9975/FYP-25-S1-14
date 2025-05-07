@@ -20,6 +20,6 @@ urlpatterns = [
     path('customer_dashboard/', customer_dashboard, name='customer_dashboard'),
     path('systemAdmin_dashboard/', systemAdmin_dashboard, name='systemAdmin_dashboard'),
     path('merchant_dashboard/', merchant_dashboard, name='merchant_dashboard'),
-    path('helpDesk_dashboard/', helpDesk_dashboard, name='helpDesk_dashboard'),
+    path('Helpdesk_dashboard/', helpDesk_dashboard, name='helpDesk_dashboard'),
     path('payments/', include('payments.urls')),
 ]
