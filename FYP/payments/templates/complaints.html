@@ -77,10 +77,27 @@
     <div class="flex flex-1">
         <!-- Sidebar -->
         <div class="w-64 bg-white border-r border-slate-200 p-4">
-            <h2 class="text-lg font-bold text-slate-900 mb-4">Dashboard</h2>
+            <h2 class="text-lg font-bold text-slate-900 mb-4">Menu</h2>
             <ul class="space-y-2">
-                <li><a href="{% url 'complaints_view' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">Have Any Complaints?</a></li>
-                <li><a href="{% url 'view_submitted_complaints' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">View Your Submitted Complaints</a></li>
+                <li>
+                    <a href="{% if request.user.role_id == 1 %}
+                            {% url 'customer_dashboard' %}
+                          {% elif request.user.role_id == 2 %}
+                            {% url 'merchant_dashboard' %}
+                          {% elif request.user.role_id == 3 %}
+                            {% url 'systemAdmin_dashboard' %}
+                          {% elif request.user.role_id == 4 %}
+                            {% url 'helpDesk_dashboard' %}
+                          {% endif %}" 
+                       class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'view_submitted_complaints' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">
+                        View Your Submitted Complaints
+                    </a>
+                </li>
             </ul>
         </div>
 

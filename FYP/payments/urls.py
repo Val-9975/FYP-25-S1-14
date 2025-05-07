@@ -41,8 +41,8 @@ urlpatterns = [
     path('suspend-customer/', views.suspend_customer, name='suspend_customer'),
     path('login/', views.handle_login, name='login'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
-    path('dashboard/sysAdmin/complaints/', views.complaints_view, name='complaints_view'),
-    path('dashboard/sysAdmin/submit_complaint/viewSubmittedComplaints', views.view_submitted_complaints, name='view_submitted_complaints'),
+    path('dashboard/complaints/', views.complaints_view, name='complaints_view'),
+    path('dashboard/viewSubmittedComplaints', views.view_submitted_complaints, name='view_submitted_complaints'),
     # Helpdesk stuff
     path('dashboard/Helpdesk/Tickets/', views.view_tickets, name='view_tickets'),
     path('dashboard/Helpdesk/TicketsDetails/<int:ticket_id>/', views.ticket_details, name='ticket_details'),
