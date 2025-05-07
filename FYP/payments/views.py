@@ -27,6 +27,7 @@ from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from .login import authenticate_user
 from .forget_password import forgot_password
 from .verifyOTP import verify_otp_user
@@ -1327,6 +1328,39 @@ def complaint_analytics(request):
     }
     
     return render(request, 'analytics.html', context)
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        try:
+            user = request.user
+            
+            # Only update fields that have values
+            if request.POST.get('first_name'):
+                user.first_name = request.POST['first_name']
+            if request.POST.get('last_name'):
+                user.last_name = request.POST['last_name']
+            if request.POST.get('phone_number'):
+                user.phone_number = request.POST['phone_number']
+            
+            # Address fields
+            if request.POST.get('address'):
+                user.address = request.POST['address']
+            if request.POST.get('city'):
+                user.city = request.POST['city']
+            if request.POST.get('state'):
+                user.state = request.POST['state']
+            if request.POST.get('country'):
+                user.country = request.POST['country']
+            if request.POST.get('zip_code'):
+                user.zip_code = request.POST['zip_code']
+            
+            user.save()
+            messages.success(request, 'Profile updated successfully!')
+        except Exception as e:
+            messages.error(request, f'Error updating profile: {str(e)}')
+    
+    return redirect('helpdesk_settings')
 
 
 @login_required
