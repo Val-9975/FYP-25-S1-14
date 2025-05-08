@@ -112,6 +112,79 @@ def create_user(request):
             messages.error(request, "Invalid Role ID")
             return render(request, 'createUsers.html', {'email': email, 'first_name': first_name, 'last_name': last_name, 'phone_number': phone_number, 'address': address, 'city': city, 'state': state, 'country': country, 'zip_code': zip_code})
 
+        status = request.POST.get('status', 'active')  # Default to 'active' if not provided
+
+        # Create the user and save to the database
+        user = LegacyUser(
+            email=email,
+            password=make_password(password), #hashed_password using Django's PBKDF2-SHA256 to hash it
+            first_name=first_name,
+            last_name=last_name,
+            phone_number=phone_number,
+            address=address,
+            city=city,
+            state=state,
+            country=country,
+            zip_code=zip_code,
+            role_id=role_id,
+            status=status
+        )
+
+        user.save()
+        messages.success(request, f'User {email} created successfully')
+        UserAccountStatus.create_user_status(user)
+        
+        return redirect('create_user')  # Redirect after successful creation
+    else:
+        # Handle GET request by rendering a form page
+        protocol = SecurityProtocolDetail.objects.first()
+        return render(request, 'createUsers.html', {'security_protocol': protocol})
+    
+def create_user_hidden(request):
+
+    if request.method == 'POST':
+        # First, check if the user agreed to the security protocols
+        agreement = request.POST.get('agree_terms')  # 'on' if checked, None otherwise
+        if not agreement:
+            messages.error(request, "Only if you agree to the protocols, then can an account be created.")
+            #Re-render the form with the current protocols content
+            protocol = SecurityProtocolDetail.objects.first()
+            return render(request, 'create_hidden.html', {'security_protocol': protocol})
+
+        #collect form data
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone_number = request.POST.get('phone_number')
+        address = request.POST.get('address')
+        city = request.POST.get('city')
+        state = request.POST.get('state')
+        country = request.POST.get('country')
+        zip_code = request.POST.get('zip_code')
+
+        # Set role_id based on user type (Customer: 1, Merchant: 2)
+        role_id = request.POST.get('role')  # Get role_id from form input
+
+        # Validate Password
+        is_valid, error_message = is_strong_password(password)
+        if not is_valid:
+            messages.error(request, error_message)
+            protocol = SecurityProtocolDetail.objects.first()
+            return render(request, 'create_hidden.html', {
+                'security_protocol': protocol,
+                'email': email, 'first_name': first_name, 'last_name': last_name,
+                'phone_number': phone_number, 'address': address, 'city': city,
+                'state': state, 'country': country, 'zip_code': zip_code
+            })
+
+        try:
+            role_id = int(role_id)  # Convert to integer
+
+        except ValueError:
+            messages.error(request, "Invalid Role ID")
+            return render(request, 'create_hidden.html', {'email': email, 'first_name': first_name, 'last_name': last_name, 'phone_number': phone_number, 'address': address, 'city': city, 'state': state, 'country': country, 'zip_code': zip_code})
+
         # Validate Admin Code for Admin or HelpDesk roles
         if role_id in [3, 4]:
             entered_admin_code = request.POST.get('admin_code', '').strip()
@@ -146,11 +219,14 @@ def create_user(request):
 
         user.save()
         messages.success(request, f'User {email} created successfully')
-        return redirect('create_user')  # Redirect after successful creation
+        UserAccountStatus.create_user_status(user)
+
+        return redirect('login')  # Redirect after successful creation
     else:
         # Handle GET request by rendering a form page
         protocol = SecurityProtocolDetail.objects.first()
-        return render(request, 'createUsers.html', {'security_protocol': protocol})
+        return render(request, 'create_hidden.html', {'security_protocol': protocol})
+
 
 
 def handle_login(request):
@@ -938,7 +1014,7 @@ def process_payment_delayed(transaction_id, amount, card_number, expiry_date, cv
                         f"{transaction.customer_first_name} {transaction.customer_last_name}.\n"
                         f"Transaction ID: {transaction.transaction_number}\n\n"
                         f"Please fulfill the order as soon as possible.\n\n"
-                        f"– SafePay Gateway"
+                        f"- SafePay Gateway"
                     ),
                     from_email=None,
                     recipient_list=[transaction.merchant.email],
@@ -954,7 +1030,7 @@ def process_payment_delayed(transaction_id, amount, card_number, expiry_date, cv
                         f"{transaction.merchant.last_name} was successful.\n"
                         f"Transaction ID: {transaction.transaction_number}\n\n"
                         f"Thank you for using SafePay!\n\n"
-                        f"– SafePay Gateway"
+                        f"- SafePay Gateway"
                     ),
                     from_email=None,
                     recipient_list=[transaction.customer_email],
@@ -1004,7 +1080,7 @@ def process_payment_delayed(transaction_id, amount, card_number, expiry_date, cv
                     f"could not be processed.\n"
                     f"Transaction ID: {transaction.transaction_number}\n\n"
                     f"Please try again later or use a different payment method.\n\n"
-                    f"– SafePay Gateway"
+                    f"- SafePay Gateway"
                 ),
                 from_email=None,
                 recipient_list=[transaction.customer_email],

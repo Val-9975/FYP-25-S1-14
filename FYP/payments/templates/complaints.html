@@ -5,123 +5,179 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit Complaint</title>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
-    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
+        href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            background: #f4f4f4;
-            color: #333;
-            margin: 0;
-        }
-        .container {
+        .form-container {
             background: white;
-            padding: 50px;
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 400px;
-            text-align: center;
-            margin-top: 20px;
+            padding: 2rem;
+            margin-top: 1rem;
         }
-        .input-field, .dropdown {
+        
+        .form-field {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-field label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2C3E50;
+        }
+        
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
             width: 100%;
-            padding: 20px;
-            margin: 20px 0;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            transition: border-color 0.2s;
         }
-        .submit-button {
-            width: 20%;
-            padding: 12px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s ease;
+        
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: #007BFF;
+            background-color: white;
         }
-        .submit-button:hover {
-            background-color: #0056b3;
+        
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .sidebar-button {
+            background-color: #e7edf3;
+            color: #0e141b;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .sidebar-button:hover {
+            background-color: #d0dbe7;
         }
     </style>
 </head>
 <body class="bg-slate-50 font-sans">
+    <div class="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
+        style='--select-button-svg: url(&apos;data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(78,115,151)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e&apos;); font-family: "Work Sans", "Noto Sans", sans-serif;'>
+        
+        <!-- Header  -->
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3" style="background-color: #007bff;">
+            <div class="flex items-center gap-4 text-[#0e141b]">
+                <div class="size-8">
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_6_535)">
+                            <path
+                                fill-rule="evenodd"
+                                clip-rule="evenodd"
+                                d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
+                                fill="currentColor"
+                            ></path>
+                        </g>
+                        <defs>
+                            <clipPath id="clip0_6_535"><rect width="48" height="48" fill="white"></rect></clipPath>
+                        </defs>
+                    </svg>
+                </div>
+                <h2 class="text-[#0e141b] text-3xl font-bold leading-tight tracking-[-0.015em]">SafePay</h2>
+            </div>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" onclick="localStorage.clear();" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
+                    Logout
+                </button>
+            </form>
+        </header>
 
-    <!-- Top Navigation Bar -->
-    <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
-        <div class="flex items-center gap-2">
-            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
-                <path fill="currentColor" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"/>
-            </svg>
-            <h2 class="text-lg font-bold">SafePay</h2>
-        </div>
-        <div class="flex items-center gap-4">
-            <!-- Logout Button -->
-            <li class="list-none">
-                <form action="/logout/" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
-                        Logout
-                    </button>
-                </form>
-            </li>
-        </div>
-    </header>
+        <!-- Two-column layout -->
+        <div class="gap-1 px-6 flex flex-1 justify-center py-5">
+            <!-- Left Column -->
+            <div class="layout-content-container flex flex-col w-80 bg-slate-50 p-4">
+                <h2 class="text-lg font-bold text-[#0e141b] mb-4">Menu</h2>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{% url 'customer_dashboard' %}" class="flex items-center gap-3 p-2 sidebar-button">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'view_submitted_complaints' %}" class="flex items-center gap-3 p-2 sidebar-button">
+                            <i data-lucide="list-checks" class="w-5 h-5"></i>
+                            View Submitted Complaints
+                        </a>
+                    </li>
+                </ul>
+            </div>
 
-    <!-- Main Container -->
-    <div class="flex flex-1">
-        <!-- Sidebar -->
-        <div class="w-64 bg-white border-r border-slate-200 p-4">
-            <h2 class="text-lg font-bold text-slate-900 mb-4">Menu</h2>
-            <ul class="space-y-2">
-                <li>
-                    <a href="{% if request.user.role_id == 1 %}
-                            {% url 'customer_dashboard' %}
-                          {% elif request.user.role_id == 2 %}
-                            {% url 'merchant_dashboard' %}
-                          {% elif request.user.role_id == 3 %}
-                            {% url 'systemAdmin_dashboard' %}
-                          {% elif request.user.role_id == 4 %}
-                            {% url 'helpDesk_dashboard' %}
-                          {% endif %}" 
-                       class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">
-                        Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'view_submitted_complaints' %}" class="flex items-center gap-3 p-2 text-slate-700 hover:bg-slate-100 rounded-xl">
-                        View Your Submitted Complaints
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Complaint Submission Form -->
-        <div class="flex-1 bg-white p-10 shadow-sm">
-            <div class="container">
-                <h2>Submit a Complaint</h2>
+            <!-- Main Content Area - Complaint Form -->
+            <main class="flex-1 p-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">Submit a Complaint</h2>
 
                 {% if messages %}
                     {% for message in messages %}
-                        <p style="color: red;">{{ message }}</p>
+                        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                            {{ message }}
+                        </div>
                     {% endfor %}
                 {% endif %}
 
-                <form method="POST" action="{% url 'submit_complaint' %}">
-                    {% csrf_token %}
-                    <!-- Display form fields -->
-                    {{ form.as_p }}
-
-                    <button type="submit" class="submit-button">Submit Complaint</button>
-                </form>
-            </div>
+                <div class="form-container">
+                    <form method="POST" action="{% url 'submit_complaint' %}">
+                        {% csrf_token %}
+                        
+                        <!-- Category Field -->
+                        <div class="form-field">
+                            <label for="id_category">
+                                <i data-lucide="tag" class="w-5 h-5 inline-block mr-2"></i>
+                                Category
+                            </label>
+                            {{ form.category }}
+                        </div>
+                        
+                        <!-- Complaint Text Field -->
+                        <div class="form-field">
+                            <label for="id_complaint_text">
+                                <i data-lucide="message-square" class="w-5 h-5 inline-block mr-2"></i>
+                                Complaint Details
+                            </label>
+                            {{ form.complaint_text }}
+                        </div>
+                        
+                        <!-- Complained Against Field -->
+                        <div class="form-field">
+                            <label for="id_complained_against">
+                                <i data-lucide="user" class="w-5 h-5 inline-block mr-2"></i>
+                                Complained Against (User ID)
+                            </label>
+                            {{ form.complained_against }}
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="mt-6">
+                            <button type="submit" class="inline-flex items-center bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition">
+                                <i data-lucide="send" class="w-5 h-5 mr-2"></i>
+                                Submit Complaint
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
         </div>
     </div>
 
+    <script>
+        lucide.createIcons(); // Initialize Lucide icons
+    </script>
 </body>
 </html>

