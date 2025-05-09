@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from datetime import datetime
+from django.http import HttpResponse
 import random
 
 def authenticate_user(request):
@@ -13,17 +14,29 @@ def authenticate_user(request):
     user = authenticate(request, username=email, password=password)
 
     if user is not None:
-        otp = random.randint(100000, 999999)
+        from .models import UserAccountStatus  # avoid circular import
+
+        try:
+            account_status = UserAccountStatus.objects.get(email=email)
+            if account_status.account_status.lower() == "suspended":
+                return HttpResponse(
+                    "<script>alert('Your account is under review and has been temporarily suspended.');"
+                    "window.location.href='/login';</script>"
+                )
+        except UserAccountStatus.DoesNotExist:
+            return HttpResponse(
+                "<script>alert('Account status not found. Please contact support.');"
+                "window.location.href='/login';</script>"
+            )
 
         # Store info in session
+        otp = random.randint(100000, 999999)
         request.session['otp'] = otp
         request.session['email'] = email
         request.session['password'] = password
-
         request.session['otp_created_at'] = datetime.now().timestamp()
 
-
-        # Print OTP in terminal for debugging
+        # Print OTP for development
         print(f"[DEBUG] OTP for {email} is: {otp}")
 
         # Render HTML email from template
@@ -41,7 +54,7 @@ def authenticate_user(request):
 
         return True
 
-    return False
+    return False  # Only return false on actual wrong credentials
 
 def handle_login(request):
     if request.method == "POST":

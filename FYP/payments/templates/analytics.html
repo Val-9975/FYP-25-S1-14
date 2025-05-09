@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Complaint Analytics | Helpdesk Dashboard</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&display=swap"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+</head>
+<body class="bg-slate-50 font-['Work_Sans',sans-serif]">
+
+  <!-- Page Container -->
+  <div class="min-h-screen flex flex-col">
+
+        <!-- Top Navigation Bar -->
+        <header class="flex items-center justify-between px-10 py-3 bg-white border-b border-slate-200">
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold">Helpdesk Dashboard</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <input type="text" class="rounded-xl bg-slate-100 px-4 py-2 text-sm" placeholder="Search...">
+                <!-- Logout Button -->
+                <li class="list-none">
+                    <form action="/logout/" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="rounded-xl h-10 px-4 bg-red-600 text-white text-sm font-bold">
+                            Logout
+                        </button>
+                    </form>
+                 </li>
+            </div>
+        </header>
+
+    <!-- Main Section -->
+    <div class="flex flex-1">
+
+            <!-- Sidebar -->
+            <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
+                <h2 class="text-lg font-bold text-[#0e141b] mb-4">Menu</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'helpdesk_dashboard' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Dashboard</a></li>
+                    <li><a href="{% url 'view_tickets' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Tickets</a></li>
+                    <li><a href="{% url 'complaint_analytics' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">Analytics</a></li>
+                    <li><a href="{% url 'helpdesk_settings' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Settings</a></li>
+                    <li><a href="{% url 'helpdesk_profile' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">HelpDesk Profile</a></li>
+                </ul>
+            </div>
+
+      <!-- Analytics Content -->
+      <main class="flex-1 p-8">
+        <h2 class="text-3xl font-bold text-slate-900 mb-6">Complaint Analytics</h2>
+
+        <!-- Tabs Navigation -->
+        <div class="mb-6 border-b border-slate-200">
+          <ul class="flex flex-wrap -mb-px" id="analyticsTabs" role="tablist">
+            <li class="mr-2" role="presentation">
+              <button class="inline-block p-4 border-b-2 rounded-t-lg" 
+                      id="overview-tab" 
+                      data-tabs-target="#overview" 
+                      type="button" 
+                      role="tab" 
+                      aria-controls="overview" 
+                      aria-selected="true">Overview</button>
+            </li>
+            <li class="mr-2" role="presentation">
+              <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-slate-600 hover:border-slate-300"
+                      id="timeline-tab"
+                      data-tabs-target="#timeline"
+                      type="button"
+                      role="tab"
+                      aria-controls="timeline"
+                      aria-selected="false">Timeline</button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Tabs Content -->
+        <div id="analyticsTabsContent">
+          <!-- Overview Tab -->
+          <div class="hidden p-4 rounded-lg bg-white" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Category Breakdown Card -->
+              <div class="p-4 border rounded-lg">
+                <h3 class="text-lg font-semibold mb-4">Complaints by Category</h3>
+                <canvas id="categoryChart" height="250"></canvas>
+              </div>
+              
+              <!-- Status Distribution Card -->
+              <div class="p-4 border rounded-lg">
+                <h3 class="text-lg font-semibold mb-4">Complaint Status</h3>
+                <canvas id="statusChart" height="250"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline Tab -->
+          <div class="hidden p-4 rounded-lg bg-white" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
+            <div class="p-4 border rounded-lg">
+              <h3 class="text-lg font-semibold mb-4">Complaints Over Time (Last 30 Days)</h3>
+              <canvas id="timelineChart" height="350"></canvas>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    lucide.createIcons();
+    
+    // Tab functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get all tab buttons and panels
+      const tabButtons = document.querySelectorAll('[role="tab"]');
+      const tabPanels = document.querySelectorAll('[role="tabpanel"]');
+      
+      // Set first tab as active by default
+      tabButtons[0].classList.add('text-blue-600', 'border-blue-600');
+      tabPanels[0].classList.remove('hidden');
+      
+      // Add click event listeners to tabs
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          // Remove active styles from all buttons
+          tabButtons.forEach(btn => {
+            btn.classList.remove('text-blue-600', 'border-blue-600');
+            btn.classList.add('border-transparent');
+          });
+          
+          // Hide all panels
+          tabPanels.forEach(panel => {
+            panel.classList.add('hidden');
+          });
+          
+          // Add active styles to clicked button
+          button.classList.add('text-blue-600', 'border-blue-600');
+          button.classList.remove('border-transparent');
+          
+          // Show corresponding panel
+          const targetPanel = document.querySelector(button.getAttribute('data-tabs-target'));
+          targetPanel.classList.remove('hidden');
+        });
+      });
+
+      // Category Chart (Pie)
+      const categoryCtx = document.getElementById('categoryChart');
+      new Chart(categoryCtx, {
+        type: 'pie',
+        data: {
+          labels: {{ category_labels|safe }},
+          datasets: [{
+            data: {{ category_data|safe }},
+            backgroundColor: [
+              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'right',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Status Chart (Doughnut)
+      const statusCtx = document.getElementById('statusChart');
+      new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: {{ status_labels|safe }},
+          datasets: [{
+            data: {{ status_data|safe }},
+            backgroundColor: [
+              '#FF6384', '#36A2EB'  // Red for Open, Blue for Closed
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'right',
+            }
+          }
+        }
+      });
+
+      // Timeline Chart (Line)
+      const timelineCtx = document.getElementById('timelineChart');
+      new Chart(timelineCtx, {
+        type: 'line',
+        data: {
+          labels: {{ timeline_labels|safe }},
+          datasets: [{
+            label: 'Number of Complaints',
+            data: {{ timeline_data|safe }},
+            borderColor: '#36A2EB',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            tension: 0.1,
+            fill: true,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Date'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Complaints Count'
+              },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

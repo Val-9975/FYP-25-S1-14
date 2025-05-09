@@ -41,7 +41,7 @@
         <!-- Search bar -->
         <div class="mb-4">
           <input
-            placeholder="Search transactions"
+            placeholder="Search by transaction ID or payment method"
             class="form-input w-full rounded-xl bg-slate-100 px-4 py-2 text-sm text-[#0e141b] focus:outline-none focus:ring-2 focus:ring-slate-300"
           />
         </div>
@@ -120,7 +120,7 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const searchInput = document.querySelector('input[placeholder="Search transactions"]');
+      const searchInput = document.querySelector('input[placeholder="Search by transaction ID or payment method"]');
       const tableRows = document.querySelectorAll('table tbody tr');
       const paymentMethodSelect = document.getElementById('payment-method');
       const statusSelect = document.getElementById('status');

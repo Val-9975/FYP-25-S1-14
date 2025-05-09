@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Helpdesk Personnel Dashboard</title>
+    <title>Helpdesk Dashboard</title>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
     <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <!-- Add Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-50 font-[Work Sans,Noto Sans,sans-serif]">
     <div class="relative flex min-h-screen flex-col overflow-x-hidden">
@@ -26,91 +24,141 @@
         </header>
         <div class="flex flex-1">
             <div class="w-64 bg-white border-r border-[#e7edf3] p-4">
-                <h2 class="text-lg font-bold text-[#0e141b] mb-4">Dashboard</h2>
+                <h2 class="text-lg font-bold text-[#0e141b] mb-4">Menu</h2>
                 <ul class="space-y-2">
-                    <li><a href="{% url 'helpdesk_dashboard' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">Live Chat</a></li>
+                    <li><a href="{% url 'helpdesk_dashboard' %}" class="block px-4 py-2 rounded-xl bg-[#e7edf3] text-[#0e141b] font-medium">Dashboard</a></li>
                     <li><a href="{% url 'view_tickets' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Tickets</a></li>
-                    <li><a href="#" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Analytics</a></li>
+                    <li><a href="{% url 'complaint_analytics' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Analytics</a></li>
                     <li><a href="{% url 'helpdesk_settings' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">Settings</a></li>
                     <li><a href="{% url 'helpdesk_profile' %}" class="block px-4 py-2 rounded-xl hover:bg-[#e7edf3] text-[#0e141b]">HelpDesk Profile</a></li>
                 </ul>
             </div>
-            
-            <!-- Live Chat UI -->
             <div class="flex-1 p-6">
-                <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">Live Chat</h1>
+                <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">Dashboard Overview</h1>
                 
-                <div class="flex h-[calc(100vh-200px)]">
-                    <!-- Online Users List -->
-                    <div class="w-1/4 bg-white rounded-xl shadow-md p-4 mr-4 overflow-y-auto">
-                        <h3 class="font-bold text-lg mb-4">Online Users</h3>
-                        <div class="space-y-2">
-                            <div class="flex items-center p-2 hover:bg-slate-100 rounded-lg cursor-pointer">
-                                <div class="relative">
-                                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">JD</div>
-                                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                                </div>
-                                <span class="ml-2">John Doe</span>
+                <!-- Stats Cards - Now with dynamic data -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-[#4e7397] mb-1">Open Complaints</p>
+                                <h3 class="text-3xl font-bold text-[#0e141b]">{{ open_complaints_count }}</h3>
                             </div>
-                            <div class="flex items-center p-2 hover:bg-slate-100 rounded-lg cursor-pointer">
-                                <div class="relative">
-                                    <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">AS</div>
-                                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                                </div>
-                                <span class="ml-2">Alice Smith</span>
+                            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
                             </div>
-                            <!-- More users... -->
                         </div>
                     </div>
                     
-                    <!-- Chat Area -->
-                    <div class="flex-1 flex flex-col bg-white rounded-xl shadow-md overflow-hidden">
-                        <!-- Chat Header -->
-                        <div class="border-b border-slate-200 p-4 flex items-center">
-                            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">JD</div>
-                            <div class="ml-3">
-                                <h4 class="font-bold">John Doe</h4>
-                                <p class="text-xs text-slate-500">Online</p>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-[#4e7397] mb-1">Resolved Today</p>
+                                <h3 class="text-3xl font-bold text-[#0e141b]">{{ resolved_today_count }}</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
                             </div>
                         </div>
-                        
-                        <!-- Messages -->
-                        <div class="flex-1 p-4 overflow-y-auto bg-slate-50">
-                            <div class="space-y-4">
-                                <!-- Received Message -->
-                                <div class="flex items-start">
-                                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white mr-2">JD</div>
-                                    <div class="max-w-[70%]">
-                                        <div class="bg-white p-3 rounded-lg shadow-sm">
-                                            <p>Hello, I'm having trouble logging into my account.</p>
-                                        </div>
-                                        <p class="text-xs text-slate-500 mt-1">10:30 AM</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Sent Message -->
-                                <div class="flex items-start justify-end">
-                                    <div class="max-w-[70%]">
-                                        <div class="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
-                                            <p>Hi John, I can help with that. Can you tell me what error message you're seeing?</p>
-                                        </div>
-                                        <p class="text-xs text-slate-500 mt-1 text-right">10:32 AM</p>
-                                    </div>
-                                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white ml-2">Y</div>
-                                </div>
-                                
-                                <!-- More messages... -->
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-[#4e7397] mb-1">Avg. Response Time</p>
+                                <h3 class="text-3xl font-bold text-[#0e141b]">{{ avg_response_time }}</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                             </div>
                         </div>
-                        
-                        <!-- Message Input -->
-                        <div class="border-t border-slate-200 p-4">
-                            <div class="flex items-center">
-                                <input type="text" placeholder="Type a message..." class="flex-1 border border-slate-300 rounded-l-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <button class="bg-blue-500 text-white py-2 px-4 rounded-r-lg hover:bg-blue-600">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
+                    </div>
+                </div>
+                
+                <!-- Recent Complaints (Tickets) -->
+                <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-[#0e141b]">Recent Complaints</h2>
+                        <a href="{% url 'view_tickets' %}" class="text-sm font-medium text-[#1980e6] hover:underline">View All</a>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-[#e7edf3]">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-[#4e7397] uppercase tracking-wider">Complaint ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-[#4e7397] uppercase tracking-wider">Category</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-[#4e7397] uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-[#4e7397] uppercase tracking-wider">Created At</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-[#4e7397] uppercase tracking-wider">User ID</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-[#e7edf3]">
+                                {% for complaint in recent_complaints %}
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#0e141b]">#{{ complaint.id }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[#0e141b]">{{ complaint.category }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if complaint.complaint_status == 'Open' %}
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">Open</span>
+                                        {% elif complaint.complaint_status == 'In Progress' %}
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">In Progress</span>
+                                        {% elif complaint.complaint_status == 'Resolved' %}
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Resolved</span>
+                                        {% else %}
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">{{ complaint.complaint_status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[#4e7397]">{{ complaint.created_at|date:"M d, Y H:i" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[#4e7397]">{{ complaint.user_id }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-xl font-bold text-[#0e141b] mb-4">Quick Actions</h2>
+                        <div class="space-y-3">
+                            <button onclick="window.location.href='{% url 'complaint_analytics' %}';" 
+                                class="w-full flex items-center justify-between px-4 py-3 border border-[#e7edf3] rounded-xl hover:bg-slate-50">
+                                <span class="text-sm font-medium text-[#0e141b]">View Analytics</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#4e7397]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-xl font-bold text-[#0e141b] mb-4">Recent Activity</h2>
+                        <div class="space-y-4">
+                            {% for activity in recent_activities %}
+                            <div class="flex items-start">
+                                <div class="p-2 rounded-full bg-slate-100 mr-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#4e7397]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        {% if activity.type == 'update' %}
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        {% else %}
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        {% endif %}
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-[#0e141b]">{{ activity.description }}</p>
+                                    <p class="text-xs text-[#4e7397]">{{ activity.timestamp|timesince }} ago</p>
+                                </div>
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>

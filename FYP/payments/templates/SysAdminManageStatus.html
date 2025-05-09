@@ -148,6 +148,16 @@
       <div class="flex-1 p-6">
         <h1 class="text-4xl font-black text-[#0e141b] tracking-[-0.033em] mb-6">User Status Overview</h1>
         
+        <form method="get" class="mb-4 flex items-center gap-3">
+          <label for="status_filter" class="text-sm font-medium">Filter by Status:</label>
+          <select name="status_filter" id="status_filter" onchange="this.form.submit()"
+              class="rounded-md border border-gray-300 py-2 px-3 text-sm focus:outline-none focus:ring focus:ring-blue-200">
+              <option value="all" {% if selected_filter == 'all' %}selected{% endif %}>All</option>
+              <option value="Available" {% if selected_filter == 'Available' %}selected{% endif %}>Available</option>
+              <option value="Suspended" {% if selected_filter == 'Suspended' %}selected{% endif %}>Suspended</option>
+          </select>
+        </form>
+
         <div class="mb-4">
           <label for="search-email" class="block text-sm font-medium text-gray-700">Search by Email:</label>
           <input type="text" id="search-email" class="w-full px-4 py-2 border rounded-lg" placeholder="Enter email..." onkeyup="filterTable()">
@@ -166,14 +176,17 @@
               {% for user_status in user_statuses %}
               <tr class="hover:bg-gray-100">
                 <td class="px-6 py-4 border-b border-gray-200">{{ user_status.email }}</td>
+                <td class="px-6 py-4 border-b border-gray-200">{{ user_status.account_status }}</td>
                 <td class="px-6 py-4 border-b border-gray-200">
-                  <select id="status-{{ user_status.email }}" class="border rounded-lg p-2 bg-gray-50">
-                    <option value="Available" {% if user_status.account_status == 'Available' %}selected{% endif %}>Available</option>
-                    <option value="Suspended" {% if user_status.account_status == 'Suspended' %}selected{% endif %}>Suspended</option>
-                  </select>
-                </td>
-                <td class="px-6 py-4 border-b border-gray-200">
-                  <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow" onclick="updateStatus('{{ user_status.email }}')">Update</button>
+                  <form method="post" action="{% url 'update_user_status' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="email" value="{{ user_status.email }}">
+                    <select name="new_status" class="border rounded-lg p-2 bg-gray-50">
+                      <option value="Available" {% if user_status.account_status == 'Available' %}selected{% endif %}>Available</option>
+                      <option value="Suspended" {% if user_status.account_status == 'Suspended' %}selected{% endif %}>Suspended</option>
+                    </select>
+                    <button type="submit" class="ml-2 bg-blue-600 text-white px-4 py-2 rounded-lg">Update</button>
+                  </form>
                 </td>
               </tr>
               {% endfor %}

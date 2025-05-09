@@ -15,7 +15,6 @@ from pathlib import Path
 from cryptography.fernet import Fernet
 
 
-
 FERNET_SECRET_KEY = os.getenv('FERNET_SECRET_KEY')
 if not FERNET_SECRET_KEY:
     raise ValueError("Missing FERNET_SECRET_KEY in environment variables")
@@ -69,7 +68,7 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # Default
 ]
 
-CSRF_COOKIE_SECURE = True  # Set to True if you're using HTTPS
+CSRF_COOKIE_SECURE = False  # Set to True if you're using HTTPS
 CSRF_COOKIE_HTTPONLY = True  # This ensures the CSRF cookie is not accessible via JavaScript
 
 
@@ -109,9 +108,9 @@ WSGI_APPLICATION = 'custom_gateway.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'payment_gateway',           # Replace with your MySQL database name
+        'NAME': 'db',           # Replace with your MySQL database name
         'USER': 'root',              # Replace with your MySQL username
-        'PASSWORD': '',              # Replace with your MySQL password
+        'PASSWORD': 'password',              # Replace with your MySQL password
         'HOST': 'localhost',         # Database host, 'localhost' for local development
         'PORT': '3306',              # Default MySQL port
     }
@@ -153,6 +152,7 @@ AUTHENTICATION_BACKENDS = [
 
 LOGOUT_REDIRECT_URL = '/login/'
 
+FERNET_KEY = os.environ.get('FERNET_KEY', Fernet.generate_key().decode())
 
 # Use database-backed sessions
 SESSION_ENGINE = 'django.contrib.sessions.backends.db' 
@@ -160,7 +160,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Session expiration settings (adjust as needed)
 SESSION_COOKIE_AGE = 3600  # Session lasts 1 hour (in seconds)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session even after closing browser
-SESSION_COOKIE_SECURE = True #set this if using https
+SESSION_COOKIE_SECURE = False #set this if using https
 
 
 # Internationalization
@@ -184,13 +184,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'safepay2025@gmail.com'  # A dedicated sender account
-EMAIL_HOST_PASSWORD = 'jwdg hwje yioh tqyb'        # App password or SMTP password
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
